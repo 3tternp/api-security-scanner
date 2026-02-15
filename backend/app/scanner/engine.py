@@ -12,6 +12,9 @@ from app.scanner.rules.injection import InjectionRule
 from app.scanner.rules.sensitive_data import SensitiveDataRule
 from app.scanner.rules.bola import BolaRule
 from app.scanner.rules.openapi_contract import OpenAPIContractRule
+from app.scanner.rules.deserialization import DeserializationRule
+from app.scanner.rules.fuzzing import FuzzingRule
+from app.scanner.rules.business_logic import BusinessLogicRule
 
 class ScannerEngine:
     def __init__(self, db: Session, scan_id: int):
@@ -24,7 +27,10 @@ class ScannerEngine:
             InjectionRule(),
             SensitiveDataRule(),
             BolaRule(),
-            OpenAPIContractRule()
+            OpenAPIContractRule(),
+            DeserializationRule(),
+            FuzzingRule(),
+            BusinessLogicRule(),
         ]
 
     async def fetch_spec(self, url: str):

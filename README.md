@@ -1,4 +1,4 @@
-# API Security Scanner
+# 🔐 API Security Scanner
 
 OWASP-focused API security scanner built with FastAPI and React.
 
@@ -6,7 +6,7 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
 
 ---
 
-## Features
+## ⚙️ Features
 
 - OWASP API Top 10–oriented checks
 - OpenAPI contract analysis:
@@ -32,7 +32,7 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
 
 ---
 
-## Tech Stack
+## 🧱 Tech Stack
 
 - Backend
   - FastAPI
@@ -52,7 +52,7 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 High-level layout:
 
@@ -77,7 +77,7 @@ High-level layout:
 
 ---
 
-## Getting Started (Local Development)
+## 🚀 Getting Started (Local Development)
 
 These steps run the backend and frontend directly on your machine without Docker.
 
@@ -156,7 +156,7 @@ You can now create scans, view findings, delete scan history, and export PDF rep
 
 ---
 
-## Getting Started (Docker)
+## 🐳 Getting Started (Docker)
 
 If you prefer containers, you can run the full stack via Docker Compose.
 
@@ -212,7 +212,7 @@ Default admin credentials are the same:
 
 ---
 
-## Usage
+## 📊 Usage
 
 1. Log in as the admin user.
 2. Go to the Scans dashboard.
@@ -237,7 +237,7 @@ Default admin credentials are the same:
 
 ---
 
-## CI Examples
+## 🧪 CI Examples
 
 This repository includes minimal CI configurations:
 
@@ -250,7 +250,7 @@ This repository includes minimal CI configurations:
 
 ---
 
-## Security Notes
+## 🔒 Security Notes
 
 - The default admin credentials (`admin@example.com` / `admin123`) are for local and demo use only. Change them in any shared or deployed environment.
 - Do not expose this tool directly to the internet without:
@@ -261,7 +261,7 @@ This repository includes minimal CI configurations:
 
 ---
 
-## Roadmap Ideas
+## 🧭 Roadmap Ideas
 
 Some areas to extend this tool further:
 
@@ -272,6 +272,6 @@ Some areas to extend this tool further:
 
 ---
 
-## License
+## 📜 License
 
 This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.

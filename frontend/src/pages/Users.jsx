@@ -111,6 +111,25 @@ const Users = () => {
         ) : !users || users.length === 0 ? (
           <p className="text-slate-600">No users found.</p>
         ) : (
+          <>
+            <div className="flex items-center gap-4 mb-4 text-sm text-slate-700">
+              <span>
+                Total users:{' '}
+                <span className="font-semibold">{users.length}</span>
+              </span>
+              <span>
+                Admins:{' '}
+                <span className="font-semibold">
+                  {users.filter((u) => u.role === 'admin').length}
+                </span>
+              </span>
+              <span>
+                Auditors:{' '}
+                <span className="font-semibold">
+                  {users.filter((u) => u.role === 'auditor').length}
+                </span>
+              </span>
+            </div>
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b">
@@ -125,12 +144,23 @@ const Users = () => {
                 <tr key={u.id} className="border-b">
                   <td className="py-2 px-2">{u.id}</td>
                   <td className="py-2 px-2">{u.email}</td>
-                  <td className="py-2 px-2">{u.role}</td>
+                  <td className="py-2 px-2">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs ${
+                        u.role === 'admin'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-blue-100 text-blue-700'
+                      }`}
+                    >
+                      {u.role}
+                    </span>
+                  </td>
                   <td className="py-2 px-2">{u.is_active ? 'Yes' : 'No'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </>
         )}
       </div>
     </div>
@@ -138,4 +168,3 @@ const Users = () => {
 }
 
 export default Users
-
