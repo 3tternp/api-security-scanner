@@ -35,12 +35,15 @@ class ScannerEngine:
 
     async def fetch_spec(self, url: str):
         if url.startswith("http"):
-            async with httpx.AsyncClient(verify=False) as client:
-                resp = await client.get(url)
-                try:
-                    return resp.json()
-                except:
-                    return yaml.safe_load(resp.text)
+            try:
+                async with httpx.AsyncClient(verify=False) as client:
+                    resp = await client.get(url)
+                    try:
+                        return resp.json()
+                    except:
+                        return yaml.safe_load(resp.text)
+            except Exception:
+                return None
         else:
             # Local file reading if it's a path
             try:
@@ -50,8 +53,9 @@ class ScannerEngine:
                         return json.loads(content)
                     except:
                         return yaml.safe_load(content)
-            except:
-                pass
+            except Exception:
+                return None
+
         return None
 
     def parse_endpoints(self, spec: dict):
