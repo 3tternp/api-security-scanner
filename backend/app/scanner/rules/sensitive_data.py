@@ -46,7 +46,11 @@ class SensitiveDataRule(BaseRule):
                             # For now just report any finding
                             findings.append(self.build_finding(
                                 description=f"Potential {p_name} exposure in response.",
-                                details={"count": len(matches), "snippet": str(matches[:3])},
+                                details={
+                                    "count": len(matches),
+                                    "snippet": str(matches[:3]),
+                                    "owasp": "API3: Broken Object Property Level Authorization"
+                                },
                                 endpoint=endpoint['path'],
                                 method="GET",
                                 severity="medium"

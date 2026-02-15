@@ -24,14 +24,8 @@ class OpenAPIContractRule(BaseRule):
             if not details or details.get('description') == 'Heuristic discovery':
                 continue
 
-            # Check 1: Missing Authentication (API2/API1)
-            # Look for 'security' field in operation or global (we only see operation here)
-            # Note: parse_endpoints doesn't pass global security, so we check operation level.
-            # Ideally we should pass global spec too, but let's assume if it's missing here it's worth flagging or checking.
-            # A strict check: if sensitive endpoint (POST/PUT/DELETE) and no 'security' defined.
             if method in ['POST', 'PUT', 'DELETE']:
                 if 'security' not in details:
-                    # Generate Proof of Concept (Snippet of the spec)
                     poc_data = {
                         "path": path,
                         "method": method,
@@ -107,6 +101,13 @@ class OpenAPIContractRule(BaseRule):
                 for content_type, media in request_body['content'].items():
                     schema = media.get('schema', {})
                     self._check_schema_for_pii(schema, pii_keywords, path, method, findings, "Request Body")
+
+            responses = details.get('responses', {})
+            for status_code, response_def in responses.items():
+                response_content = response_def.get('content', {})
+                for content_type, media in response_content.items():
+                    schema = media.get('schema', {})
+                    self._check_schema_for_pii(schema, pii_keywords, path, method, findings, f"Response {status_code}")
 
         return findings
 

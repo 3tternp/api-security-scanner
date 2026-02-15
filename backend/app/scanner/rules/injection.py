@@ -65,7 +65,11 @@ class InjectionRule(BaseRule):
                                 if any(e in response.text.lower() for e in errors):
                                     findings.append(self.build_finding(
                                         description=f"Possible SQL Injection detected with payload: {payload}",
-                                        details={"url": test_url, "response_snippet": response.text[:200]},
+                                        details={
+                                            "url": test_url,
+                                            "response_snippet": response.text[:200],
+                                            "owasp": "API8: Security Misconfiguration"
+                                        },
                                         endpoint=endpoint['path'],
                                         method="GET",
                                         severity="high"
@@ -75,7 +79,10 @@ class InjectionRule(BaseRule):
                                 if payload in response.text:
                                     findings.append(self.build_finding(
                                         description=f"Reflected XSS detected with payload: {payload}",
-                                        details={"url": test_url},
+                                        details={
+                                            "url": test_url,
+                                            "owasp": "API8: Security Misconfiguration"
+                                        },
                                         endpoint=endpoint['path'],
                                         method="GET",
                                         severity="high"

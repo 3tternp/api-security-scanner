@@ -38,10 +38,13 @@ class AuthRequiredRule(BaseRule):
                         continue # Skip other methods for now
 
                     if response.status_code == 200:
-                        # Simple heuristic: if 200 OK without auth, might be vulnerable
                         findings.append(self.build_finding(
                             description=f"Endpoint {method} {path} is accessible without authentication.",
-                            details={"status": response.status_code, "body": str(response.text)[:200]},
+                            details={
+                                "status": response.status_code,
+                                "body": str(response.text)[:200],
+                                "owasp": "API2: Broken Authentication"
+                            },
                             endpoint=path,
                             method=method
                         ))

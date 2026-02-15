@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { LogOut, Shield } from 'lucide-react'
+import { LogOut, Shield, Users as UsersIcon } from 'lucide-react'
 
 const Navbar = ({ setIsAuthenticated }) => {
   const navigate = useNavigate()
@@ -20,6 +20,10 @@ const Navbar = ({ setIsAuthenticated }) => {
         <div className="flex space-x-6 items-center">
           <Link to="/" className="hover:text-blue-300">Dashboard</Link>
           <Link to="/scans" className="hover:text-blue-300">Scans</Link>
+          <Link to="/users" className="hover:text-blue-300 flex items-center space-x-1">
+            <UsersIcon className="w-4 h-4" />
+            <span>Users</span>
+          </Link>
           <button
             onClick={handleLogout}
             className="flex items-center space-x-1 hover:text-red-300"
@@ -34,4 +38,3 @@ const Navbar = ({ setIsAuthenticated }) => {
 }
 
 export default Navbar
-

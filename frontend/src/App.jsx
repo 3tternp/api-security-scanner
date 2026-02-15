@@ -5,6 +5,7 @@ import Login from './pages/Login.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import ScanList from './pages/ScanList.jsx'
 import ScanDetail from './pages/ScanDetail.jsx'
+import Users from './pages/Users.jsx'
 import Navbar from './components/Navbar.jsx'
 
 const queryClient = new QueryClient()
@@ -41,6 +42,10 @@ function App() {
                 path="/scans/:id"
                 element={isAuthenticated ? <ScanDetail /> : <Navigate to="/login" />}
               />
+              <Route
+                path="/users"
+                element={isAuthenticated ? <Users /> : <Navigate to="/login" />}
+              />
             </Routes>
           </div>
         </div>
@@ -50,4 +55,3 @@ function App() {
 }
 
 export default App
-

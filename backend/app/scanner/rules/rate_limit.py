@@ -62,7 +62,10 @@ class RateLimitRule(BaseRule):
                 if duration < 2: # 50 requests in under 2 seconds is quite fast/unrestricted
                     findings.append(self.build_finding(
                         description=f"Potential lack of rate limiting. Sent {request_count} requests in {duration:.2f}s without 429 response.",
-                        details={"status_codes": dict((i, status_codes.count(i)) for i in set(status_codes))},
+                        details={
+                            "status_codes": dict((i, status_codes.count(i)) for i in set(status_codes)),
+                            "owasp": "API4: Unrestricted Resource Consumption"
+                        },
                         endpoint=test_endpoint['path'],
                         method="GET"
                     ))

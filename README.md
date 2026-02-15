@@ -12,12 +12,12 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
 - OpenAPI contract analysis:
   - Missing or weak authentication on endpoints
   - Unrestricted file uploads
-  - PII exposure in request/response schemas
+  - PII exposure in request/response schemas (request and response bodies)
 - Dynamic checks against a target API:
   - Security headers and basic CORS misconfiguration
   - Rate limiting and resource consumption
-  - Basic BOLA / IDOR attempts
-  - Sensitive data patterns in responses
+  - BOLA / IDOR attempts by modifying object identifiers
+  - Sensitive data patterns in responses (emails, SSNs, API keys, etc.)
 - Dashboard:
   - List of scans, status, and timestamps
   - OWASP API Top 10 coverage summary
@@ -27,6 +27,7 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
   - Impact, remediation, and CVSS-style metadata
   - OWASP category summary
 - Basic authentication and roles (admin vs regular user)
+- Multi-user management UI for creating admin/auditor accounts
 - Optional HTTPS reverse proxy via Nginx with TLS
 
 ---
@@ -68,9 +69,11 @@ High-level layout:
   - `src/main.jsx` – React entrypoint
   - `src/App.jsx` – routing and layout
   - `src/api.js` – Axios client and API helpers
-  - `src/pages/` – Login, Dashboard, ScanList, ScanDetail pages
+  - `src/pages/` – Login, Dashboard, ScanList, ScanDetail, Users pages
 - `docker-compose.yml` – backend, frontend, database, and reverse-proxy services
 - `nginx.conf` – Nginx config for HTTPS termination and routing
+ - `.github/workflows/ci.yml` – GitHub Actions example pipeline
+ - `.gitlab-ci.yml` – GitLab CI example pipeline
 
 ---
 
@@ -230,6 +233,20 @@ Default admin credentials are the same:
    - OWASP API Top 10 mapping where applicable
 7. Export a PDF report for audit or sharing.
 8. Delete old scans using the **Delete** action in the scans table.
+9. (Admin only) Go to the **Users** page to create additional admin/auditor accounts.
+
+---
+
+## CI Examples
+
+This repository includes minimal CI configurations:
+
+- GitHub Actions: `.github/workflows/ci.yml`
+  - Installs backend dependencies and runs a Python compile check.
+  - Installs frontend dependencies and runs `npm run build`.
+- GitLab CI: `.gitlab-ci.yml`
+  - Backend stage using Python image and compile check.
+  - Frontend stage using Node image and `npm run build`.
 
 ---
 
@@ -246,17 +263,15 @@ Default admin credentials are the same:
 
 ## Roadmap Ideas
 
-Potential future enhancements:
+Some areas to extend this tool further:
 
-- Additional OWASP API Top 10 checks and mappings
-- More advanced BOLA / business-logic tests
-- Expanded OpenAPI SAST rules
-- CI integration examples (GitHub Actions, GitLab CI)
-- Multi-user management UI and role management
+- Deeper business-logic test scenarios (workflow-level abuse cases)
+- Additional injection and deserialization checks
+- Fuzzing-based parameter and payload testing
+- More granular role-based access control visualization in the UI
 
 ---
 
 ## License
 
-Choose a license (for example MIT or Apache-2.0) and document it here.
-
+This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.

@@ -45,4 +45,7 @@ export const getScan = (id) => api.get(`/scans/${id}`);
 export const getScanResults = (id) => api.get(`/scans/${id}/results`);
 export const deleteScan = (id) => api.delete(`/scans/${id}`);
 
+export const getUsers = () => api.get('/users/');
+export const createUser = (data) => api.post('/users/', data);
+
 export default api;

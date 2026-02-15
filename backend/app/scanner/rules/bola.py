@@ -59,27 +59,24 @@ class BolaRule(BaseRule):
                         if resp_orig.status_code != 200:
                             continue # If original not accessible, can't test BOLA
 
-                        # 2. Request Modified ID
                         resp_test = await client.get(test_url, headers=headers)
-                        
-                        # If both are 200 OK, we might have BOLA
-                        # Ideally content should be different (different user) but not 404
                         if resp_test.status_code == 200:
-                            # Heuristic: Check if response length is similar but content different?
-                            # Or just flag it.
-                            
-                            findings.append(self.build_finding(
-                                description=f"Potential BOLA/IDOR: Accessible resource {test_path} (modified from {path}).",
-                                details={
-                                    "original_url": original_url,
-                                    "test_url": test_url,
-                                    "original_status": resp_orig.status_code,
-                                    "test_status": resp_test.status_code
-                                },
-                                endpoint=path,
-                                method="GET",
-                                severity="high"
-                            ))
+                            body_orig = resp_orig.text
+                            body_test = resp_test.text
+                            if body_orig != body_test:
+                                findings.append(self.build_finding(
+                                    description=f"Potential BOLA/IDOR: Accessible resource {test_path} (modified from {path}).",
+                                    details={
+                                        "original_url": original_url,
+                                        "test_url": test_url,
+                                        "original_status": resp_orig.status_code,
+                                        "test_status": resp_test.status_code,
+                                        "owasp": "API1: Broken Object Level Authorization"
+                                    },
+                                    endpoint=path,
+                                    method="GET",
+                                    severity="high"
+                                ))
                     except:
                         pass
 
