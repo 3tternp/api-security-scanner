@@ -14,7 +14,7 @@ class ScanResultBase(BaseModel):
     rule_id: str
     severity: str
     description: str
-    details: Dict[str, Any]
+    details: Optional[Dict[str, Any]] = None
     endpoint: str
     method: str
 

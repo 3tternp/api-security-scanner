@@ -46,11 +46,25 @@ def _severity_color(severity: str):
         return RGBColor(0x60, 0x60, 0x60)   # grey (info)
 
 
+def _set_cell_shading(cell, fill_hex: str = "D9D9D9"):
+    """Set background shading on a table cell (compatible with python-docx 1.x)."""
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+
+    tc_pr = cell._tc.get_or_add_tcPr()
+    # Remove any existing shd element first
+    for existing in tc_pr.findall(qn("w:shd")):
+        tc_pr.remove(existing)
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"),   "clear")
+    shd.set(qn("w:color"), "auto")
+    shd.set(qn("w:fill"),  fill_hex)
+    tc_pr.append(shd)
+
+
 def _add_table_row(table, label: str, value: str, label_width=None):
     """Append a two-column key/value row to *table*."""
-    from docx.shared import Pt, RGBColor
-    from docx.oxml.ns import qn
-    import copy
+    from docx.shared import Pt
 
     row = table.add_row()
     cell_label = row.cells[0]
@@ -59,7 +73,7 @@ def _add_table_row(table, label: str, value: str, label_width=None):
     cell_label.text = label
     cell_value.text = value or ""
 
-    # Style label cell
+    # Style label cell — bold, small font
     for para in cell_label.paragraphs:
         for run in para.runs:
             run.bold = True
@@ -68,12 +82,8 @@ def _add_table_row(table, label: str, value: str, label_width=None):
         for run in para.runs:
             run.font.size = Pt(9)
 
-    # Light grey background for label cell
-    tc_pr = cell_label._tc.get_or_add_tcPr()
-    shd = tc_pr.get_or_add_shd()
-    shd.set(qn("w:fill"), "D9D9D9")
-    shd.set(qn("w:color"), "auto")
-    shd.set(qn("w:val"), "clear")
+    # Light grey background for label cell (python-docx 1.x compatible)
+    _set_cell_shading(cell_label, "E8E8E8")
 
 
 def generate_docx_report(scan: ScanJob, results: list, output_path: str):
