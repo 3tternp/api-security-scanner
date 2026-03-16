@@ -10,3 +10,4 @@ python-multipart
 pyyaml
 alembic
 requests
+python-docx

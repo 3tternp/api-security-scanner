@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -47,5 +47,17 @@ export const deleteScan = (id) => api.delete(`/scans/${id}`);
 
 export const getUsers = () => api.get('/users/');
 export const createUser = (data) => api.post('/users/', data);
+
+// Update finding status
+export const updateFindingStatus = (resultId, status) =>
+  api.patch(`/scans/results/${resultId}/status`, { status });
+
+// Get dashboard stats
+export const getDashboardStats = () =>
+  api.get('/scans/dashboard/stats');
+
+// Download DOCX report - returns blob
+export const downloadDocxReport = (scanId) =>
+  api.get(`/scans/${scanId}/report/docx`, { responseType: 'blob' });
 
 export default api;

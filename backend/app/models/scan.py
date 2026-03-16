@@ -42,5 +42,7 @@ class ScanResult(Base):
     confidentiality = Column(String, default="")
     integrity = Column(String, default="")
     availability = Column(String, default="")
+    status = Column(String, default="Open")  # Open, In Progress, Fixed, Accepted Risk
+    cvss_score = Column(String, default="")
 
     job = relationship("ScanJob", back_populates="results")

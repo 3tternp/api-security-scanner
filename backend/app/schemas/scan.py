@@ -31,9 +31,14 @@ class ScanResultBase(BaseModel):
     confidentiality: Optional[str] = ""
     integrity: Optional[str] = ""
     availability: Optional[str] = ""
+    status: Optional[str] = "Open"
+    cvss_score: Optional[str] = ""
 
 class ScanResultCreate(ScanResultBase):
     pass
+
+class ScanResultUpdate(BaseModel):
+    status: str
 
 class ScanResult(ScanResultBase):
     id: int
@@ -51,3 +56,16 @@ class ScanJob(ScanJobBase):
 
     class Config:
         from_attributes = True
+
+class DashboardStats(BaseModel):
+    total_scans: int
+    completed_scans: int
+    running_scans: int
+    total_findings: int
+    open_findings: int
+    critical_findings: int
+    high_findings: int
+    medium_findings: int
+    low_findings: int
+    info_findings: int
+    findings_by_rule: Dict[str, int]
