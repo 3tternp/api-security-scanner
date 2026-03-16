@@ -34,7 +34,11 @@
       "Bash(curl -s -w \"\\\\nHTTP_CODE:%{http_code}\" \"http://localhost:8000/api/v1/scans/1/results\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzQzODA4OTUsInN1YiI6ImFkbWluQGV4YW1wbGUuY29tIn0.sDvQGAIZJFGziNS_yh34TkA65XkW1xg8N_1lNA52G1M\")",
       "Bash(find '/c/Users/ASUS/Documents/Github/API vulnerability scanner/.claude/worktrees/mystifying-knuth/backend' -name python* -o -name python3*)",
       "Bash(PYEXE=\"/c/Users/ASUS/Documents/Github/API vulnerability scanner/.venv/Scripts/python.exe\")",
-      "Bash(\"$PYEXE\" -c \":*)"
+      "Bash(\"$PYEXE\" -c \":*)",
+      "Bash(where gh:*)",
+      "Bash(winget list:*)",
+      "Bash(\"/c/Program Files/GitHub:*)",
+      "Bash(\"/c/Users/ASUS/Documents/Github/API vulnerability:*)"
     ]
   }
 }

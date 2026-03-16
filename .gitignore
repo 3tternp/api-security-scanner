@@ -29,3 +29,7 @@ frontend/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Playwright screenshot capture temp dir
+scripts/ss/node_modules/
+scripts/ss/package-lock.json
