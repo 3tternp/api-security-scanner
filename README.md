@@ -2,29 +2,51 @@
 
 OWASP-focused API security scanner built with FastAPI and React.
 
-It performs static analysis of OpenAPI contracts and dynamic checks against live APIs, then presents findings in a web dashboard and exportable PDF reports.
+It performs static analysis of OpenAPI contracts and dynamic checks against live APIs, then presents findings in a web dashboard with exportable PDF and DOCX reports.
 
 ---
 
 ## 📸 Screenshots
 
 ### Login — Cybersecurity Theme
-![Login page with dark cybersecurity aesthetic, OWASP API1–API10 tag bar, shield icon and Scanner Online indicator](docs/screenshots/login.png)
+> Dark-themed login with OWASP API Top 10 tag bar, shield branding, and JWT-protected authentication
+
+![Login page](docs/screenshots/login.png)
+
+---
 
 ### Security Dashboard
-![Security Dashboard showing metric cards, severity breakdown with risk score gauge, and OWASP API Coverage Map grid](docs/screenshots/dashboard.png)
+> Real-time metrics: total scans, findings, severity breakdown, risk score gauge, and interactive OWASP API Coverage Map
+
+![Security Dashboard](docs/screenshots/dashboard.png)
+
+---
 
 ### Scans List
-![Scans list page showing two completed scans with finding counts and action buttons](docs/screenshots/scans-list.png)
+> All past scans with completion status, timestamps, and per-scan finding counts
+
+![Scans list](docs/screenshots/scans-list.png)
+
+---
 
 ### Scan Detail — Findings
-![Scan detail page showing 32 critical findings with severity filter bar, OPENAPI-CONTRACT rule violations with endpoint paths](docs/screenshots/scan-detail-top.png)
+> Severity summary boxes, filter bar (by severity and triage status), and paginated findings list with rule badges and endpoint paths
 
-### Findings with Expanded Details
-![Scan findings list scrolled to show multiple OPENAPI-CONTRACT critical findings with HTTP method badges and status dropdowns](docs/screenshots/scan-findings.png)
+![Scan detail](docs/screenshots/scan-detail-top.png)
+
+---
+
+### Findings — Scrolled View
+> Each finding shows the HTTP method, full endpoint path, severity badge, and inline triage status dropdown
+
+![Findings list](docs/screenshots/scan-findings.png)
+
+---
 
 ### User Management
-![User management page with create-user form and existing users table showing role badges](docs/screenshots/users.png)
+> Admin-only page to create auditor/admin accounts and view existing users with role badges
+
+![User management](docs/screenshots/users.png)
 
 ---
 
@@ -34,24 +56,30 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
 - OpenAPI contract analysis:
   - Missing or weak authentication on endpoints
   - Unrestricted file uploads
-  - PII exposure in request/response schemas (request and response bodies)
-- Dynamic checks against a target API:
-  - Security headers and basic CORS misconfiguration
+  - PII exposure in request/response schemas
+- Dynamic checks against a live target API:
+  - Security headers and CORS misconfiguration
   - Rate limiting and resource consumption
   - BOLA / IDOR attempts by modifying object identifiers
   - Business-logic checks against sensitive flows (payments, orders, checkouts)
   - Fuzzing-based robustness tests for query parameters and JSON bodies
-  - Error-based indicators of unsafe deserialization in responses
+  - Error-based indicators of unsafe deserialization
   - Sensitive data patterns in responses (emails, SSNs, API keys, etc.)
+  - JWT algorithm confusion (e.g. `alg: none` bypass)
+  - Mass assignment via unprotected writeable fields
 - Dashboard:
-  - List of scans, status, and timestamps
-  - OWASP API Top 10 coverage summary
-  - Ability to delete scan history
-- PDF report export with:
-  - Grouped findings
-  - Impact, remediation, and CVSS-style metadata
-  - OWASP category summary
-- Basic authentication and roles (admin vs regular user)
+  - Real-time metrics (total scans, findings, open issues)
+  - Severity breakdown with weighted risk score (0–100)
+  - Interactive OWASP API Coverage Map grid
+  - Recent scans summary
+- Scan detail:
+  - Per-finding severity, rule ID, endpoint, and HTTP method
+  - Inline triage status (Open / In Progress / Fixed / Accepted Risk)
+  - Filter by severity and status
+- Report export:
+  - **PDF** — multi-page professional report with cover page, severity summary, OWASP coverage table, and per-finding detail sections
+  - **DOCX** — structured Word document with colour-coded severity rows
+- Basic authentication and roles (admin vs auditor)
 - Multi-user management UI for creating admin/auditor accounts
 - Optional HTTPS reverse proxy via Nginx with TLS
 
@@ -59,52 +87,43 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
 
 ## 🧱 Tech Stack
 
-- Backend
-  - FastAPI
-  - SQLAlchemy
-  - Uvicorn
-  - SQLite by default (via config), Postgres when using Docker Compose
-- Frontend
-  - React + Vite
-  - React Router
-  - @tanstack/react-query
-  - Axios
-  - jsPDF and jsPDF-autotable
-  - lucide-react icons
-- Containerization
-  - Docker and Docker Compose
-  - Nginx as HTTPS reverse proxy
+| Layer | Technologies |
+|---|---|
+| Backend | FastAPI · SQLAlchemy · Uvicorn · SQLite (dev) / PostgreSQL (Docker) |
+| Frontend | React + Vite · React Router v6 · TanStack Query · Axios · Tailwind CSS · Lucide icons |
+| Reports | jsPDF + jspdf-autotable (PDF) · python-docx 1.x (DOCX) |
+| Container | Docker · Docker Compose · Nginx (HTTPS reverse proxy) |
 
 ---
 
 ## 📁 Project Structure
 
-High-level layout:
-
-- `backend/`
-  - `app/main.py` – FastAPI application entrypoint
-  - `app/api/api_v1/endpoints/` – login, users, scans endpoints
-  - `app/scanner/engine.py` – orchestration of scanner rules
-  - `app/scanner/rules/` – individual scanning rules (security headers, BOLA, OpenAPI contract, etc.)
-  - `app/models/` – SQLAlchemy models for users, scans, results
-  - `app/schemas/` – Pydantic schemas for API I/O
-  - `app/core/config.py` – configuration (CORS, DB URL, etc.)
-  - `app/initial_data.py` – bootstrap admin user and tables
-- `frontend/`
-  - `src/main.jsx` – React entrypoint
-  - `src/App.jsx` – routing and layout
-  - `src/api.js` – Axios client and API helpers
-  - `src/pages/` – Login, Dashboard, ScanList, ScanDetail, Users pages
-- `docker-compose.yml` – backend, frontend, database, and reverse-proxy services
-- `nginx.conf` – Nginx config for HTTPS termination and routing
- - `.github/workflows/ci.yml` – GitHub Actions example pipeline
- - `.gitlab-ci.yml` – GitLab CI example pipeline
+```
+api-security-scanner/
+├── backend/
+│   └── app/
+│       ├── main.py                        # FastAPI entrypoint
+│       ├── api/api_v1/endpoints/          # login · users · scans endpoints
+│       ├── scanner/
+│       │   ├── engine.py                  # Rule orchestration
+│       │   └── rules/                     # Individual scanning rules
+│       ├── models/                        # SQLAlchemy ORM models
+│       ├── schemas/                       # Pydantic I/O schemas
+│       └── core/config.py                 # App configuration
+├── frontend/
+│   └── src/
+│       ├── App.jsx                        # Routing + sidebar layout
+│       ├── api.js                         # Axios client
+│       └── pages/                         # Login · Dashboard · Scans · ScanDetail · Users
+├── docs/screenshots/                      # README screenshots
+├── scripts/                               # Dev utilities (seed data, screenshot capture)
+├── docker-compose.yml
+└── nginx.conf
+```
 
 ---
 
 ## 🚀 Getting Started (Local Development)
-
-These steps run the backend and frontend directly on your machine without Docker.
 
 ### 1. Clone the repository
 
@@ -115,91 +134,64 @@ cd api-security-scanner
 
 ### 2. Backend (FastAPI)
 
-Create and activate a virtual environment:
-
 ```bash
 cd backend
+
+# Create and activate a virtual environment
 python -m venv .venv
 
 # Windows PowerShell
 .venv\Scripts\Activate.ps1
-
-# Linux/macOS (bash/zsh)
+# Linux / macOS
 # source .venv/bin/activate
-```
 
-Install dependencies:
-
-```bash
 pip install --upgrade pip
 pip install -r requirements.txt
-```
 
-Initialize the database and admin user:
-
-```bash
+# Initialise the database and create the default admin user
 python -m app.initial_data
-```
 
-This creates:
-
-- Database tables
-- Admin user:
-  - Email: `admin@example.com`
-  - Password: `admin123`
-
-Run the API:
-
-```bash
+# Start the API server
 uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
-The API is now available at:
+API is available at `http://localhost:8001/api/v1`
 
-- `http://localhost:8001/api/v1`
-
-### 3. Frontend (React)
-
-In a new terminal:
+### 3. Frontend (React + Vite)
 
 ```bash
-cd api-security-scanner/frontend
+cd frontend
 npm install
 npm run dev
 ```
 
-By default the frontend runs at:
+Frontend runs at `http://localhost:5173`
 
-- `http://localhost:5173`
+### 4. Log in
 
-Log in using:
+| Field | Value |
+|---|---|
+| Email | `admin@example.com` |
+| Password | `admin123` |
 
-- Email: `admin@example.com`
-- Password: `admin123`
-
-You can now create scans, view findings, delete scan history, and export PDF reports.
+> ⚠️ Change these credentials before deploying to any shared environment.
 
 ---
 
 ## 🐳 Getting Started (Docker)
 
-If you prefer containers, you can run the full stack via Docker Compose.
-
 ### Prerequisites
 
-- Docker
-- Docker Compose
+- Docker and Docker Compose
 
-### 1. Clone the repository
+### 1. Clone and configure
 
 ```bash
 git clone https://github.com/3tternp/api-security-scanner.git
 cd api-security-scanner
 ```
 
-### 2. Optional: create self-signed TLS certificates
-
-If you want HTTPS on `https://localhost/` via Nginx:
+### 2. (Optional) Generate self-signed TLS certificates for HTTPS
 
 ```bash
 mkdir certs
@@ -217,133 +209,105 @@ docker compose build
 docker compose up
 ```
 
-Services:
+| Service | Description |
+|---|---|
+| `backend` | FastAPI API on port 8000 (internal) |
+| `frontend` | React app on port 5173 |
+| `reverse-proxy` | Nginx TLS termination on port 443 |
+| `db` | PostgreSQL (when configured) |
 
-- `backend` – FastAPI API (port 8000 inside Docker network)
-- `frontend` – React app (port 5173)
-- `reverse-proxy` – Nginx TLS reverse proxy (port 443)
-- `db` – Postgres (if configured in docker-compose)
-
-Access:
-
-- Via HTTPS reverse proxy: `https://localhost/`  
-  (you may need to accept the self-signed certificate)
-- Or directly to the frontend: `http://localhost:5173/`
-
-Default admin credentials are the same:
-
-- Email: `admin@example.com`
-- Password: `admin123`
+Access the app:
+- Via HTTPS: `https://localhost/` *(accept the self-signed cert)*
+- Direct frontend: `http://localhost:5173/`
 
 ---
 
 ## 📊 Usage
 
-1. Log in as the admin user.
-2. Go to the Scans dashboard.
-3. Click **New Scan** and provide:
+1. Log in as `admin@example.com` / `admin123`.
+2. Go to **Scans → New Scan** and provide:
    - Target URL (e.g. `https://api.example.com`)
-   - Optional OpenAPI spec:
-     - URL, or
-     - JSON file upload
-   - Optional auth:
-     - Bearer token
-     - Basic auth (username/password)
-4. Start the scan.
-5. Monitor status:
-   - Running, completed, failed
-   - Progress banner when scans are running
-6. View scan details:
-   - Findings grouped by rule and description
-   - OWASP API Top 10 mapping where applicable
-7. Export a PDF report for audit or sharing.
-8. Delete old scans using the **Delete** action in the scans table.
-9. (Admin only) Go to the **Users** page to create additional admin/auditor accounts.
+   - Optional OpenAPI spec URL or JSON file upload
+   - Optional auth: Bearer token or Basic credentials
+3. Start the scan and monitor its status (Running → Completed / Failed).
+4. Open the scan to view findings:
+   - Filter by severity (Critical / High / Medium / Low / Info)
+   - Filter by triage status (Open / In Progress / Fixed / Accepted Risk)
+   - Update each finding's status inline
+5. Export a **PDF** or **DOCX** report for audit or sharing.
+6. Delete old scans from the Scans list.
+7. *(Admin only)* Go to **Users** to create additional admin or auditor accounts.
 
 ---
 
-## 🔬 Demo: Scan a Local API
-
-For a quick demo of the more advanced checks, you can scan a local test API.
+## 🔬 Demo: Scan a Local Vulnerable API
 
 ### 1. Start the scanner backend and frontend
 
-- Backend API (from project root):
-
-  ```bash
-  cd backend
-  uvicorn app.main:app --host 0.0.0.0 --port 8001
-  ```
-
-- Frontend (in another terminal):
-
-  ```bash
-  cd frontend
-  npm run dev -- --port 5174
-  ```
-
-### 2. (Optional) Start a demo vulnerable API
-
-Create a `demo_api.py` next to this project (or inside it) with a few test endpoints (payments, fuzz targets, and error messages), then run:
-
 ```bash
-python -m uvicorn demo_api:app --host 0.0.0.0 --port 9002
+# Terminal 1 — backend
+cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8001
+
+# Terminal 2 — frontend
+cd frontend && npm run dev
 ```
 
-Verify it is running at:
+### 2. Start a demo vulnerable API
 
+Create a `demo_api.py` (outside this project) with intentionally weak endpoints, then run:
+
+```bash
+uvicorn demo_api:app --host 0.0.0.0 --port 9002
+```
+
+Confirm it's running at:
+- Swagger UI: `http://localhost:9002/docs`
 - OpenAPI spec: `http://localhost:9002/openapi.json`
-- Docs: `http://localhost:9002/docs`
 
 ### 3. Run a scan from the UI
 
-1. Open the frontend at `http://localhost:5174/` and log in as `admin@example.com` / `admin123`.
-2. Go to **Scans** → **New Scan**.
-3. Use:
+1. Open `http://localhost:5173/` and log in.
+2. **Scans → New Scan**
+3. Fill in:
    - Target URL: `http://localhost:9002`
-   - OpenAPI spec URL: `http://localhost:9002/openapi.json`
-4. Start the scan and, once completed, view the findings.
+   - OpenAPI Spec URL: `http://localhost:9002/openapi.json`
+4. Click **Start Scan** and wait for completion.
+5. View findings in the scan detail page.
 
-You should see findings generated by:
-
-- Business-logic checks (sensitive POST flows)
-- Fuzzing-based tests (5xx errors on malformed inputs)
-- Deserialization indicators (error messages mentioning deserialization)
+Expected findings from a vulnerable demo API:
+- Business-logic checks on sensitive POST flows
+- Fuzzing-induced 5xx errors on malformed inputs
+- Deserialization indicators in error messages
 
 ---
 
 ## 🧪 CI Examples
 
-This repository includes minimal CI configurations:
-
-- GitHub Actions: `.github/workflows/ci.yml`
-  - Installs backend dependencies and runs a Python compile check.
-  - Installs frontend dependencies and runs `npm run build`.
-- GitLab CI: `.gitlab-ci.yml`
-  - Backend stage using Python image and compile check.
-  - Frontend stage using Node image and `npm run build`.
+| Platform | File | What it does |
+|---|---|---|
+| GitHub Actions | `.github/workflows/ci.yml` | Backend compile check + frontend `npm run build` |
+| GitLab CI | `.gitlab-ci.yml` | Backend stage (Python) + frontend stage (Node) |
 
 ---
 
 ## 🔒 Security Notes
 
-- The default admin credentials (`admin@example.com` / `admin123`) are for local and demo use only. Change them in any shared or deployed environment.
-- Do not expose this tool directly to the internet without:
+- The default credentials (`admin@example.com` / `admin123`) are for local and demo use **only**. Change them before deploying.
+- Do not expose this tool to the internet without:
   - Strong authentication and access control
   - HTTPS (TLS) termination
-  - Network and infrastructure hardening (firewalls, WAF, etc.)
-- Some dynamic checks may send multiple requests (for example when testing rate limiting). Avoid running against production systems without appropriate coordination.
+  - Network hardening (firewalls, WAF)
+- Some dynamic checks send multiple HTTP requests (e.g. rate-limit probing). **Do not run against production systems** without coordination.
 
 ---
 
 ## 🧭 Roadmap Ideas
 
-Some areas to extend this tool further:
-
 - Deeper workflow modeling and stateful multi-step test scenarios
 - Additional SSRF and outbound-call abuse heuristics
 - Fuzzing of file uploads and multipart endpoints
-- Visualizations of cross-scan trends and risk scoring
+- Visualisations of cross-scan trends and risk scoring over time
+- SAML / SSO support for enterprise deployments
 
 ---
 
