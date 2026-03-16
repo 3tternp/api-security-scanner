@@ -6,9 +6,16 @@ import Dashboard from './pages/Dashboard.jsx'
 import ScanList from './pages/ScanList.jsx'
 import ScanDetail from './pages/ScanDetail.jsx'
 import Users from './pages/Users.jsx'
-import Navbar from './components/Navbar.jsx'
+import Sidebar from './components/Sidebar.jsx'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      retry: 1,
+    },
+  },
+})
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'))
@@ -16,39 +23,31 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <div className="min-h-screen bg-gray-50">
-          {isAuthenticated && <Navbar setIsAuthenticated={setIsAuthenticated} />}
-          <div className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route
-                path="/login"
-                element={
-                  !isAuthenticated ? (
-                    <Login setIsAuthenticated={setIsAuthenticated} />
-                  ) : (
-                    <Navigate to="/" />
-                  )
-                }
-              />
-              <Route
-                path="/"
-                element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
-              />
-              <Route
-                path="/scans"
-                element={isAuthenticated ? <ScanList /> : <Navigate to="/login" />}
-              />
-              <Route
-                path="/scans/:id"
-                element={isAuthenticated ? <ScanDetail /> : <Navigate to="/login" />}
-              />
-              <Route
-                path="/users"
-                element={isAuthenticated ? <Users /> : <Navigate to="/login" />}
-              />
-            </Routes>
+        {isAuthenticated ? (
+          <div className="flex h-screen overflow-hidden bg-slate-50">
+            <Sidebar setIsAuthenticated={setIsAuthenticated} />
+            <main className="flex-1 overflow-y-auto">
+              <div className="p-6 lg:p-8 max-w-screen-2xl">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/scans" element={<ScanList />} />
+                  <Route path="/scans/:id" element={<ScanDetail />} />
+                  <Route path="/users" element={<Users />} />
+                  <Route path="/login" element={<Navigate to="/" />} />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </div>
+            </main>
           </div>
-        </div>
+        ) : (
+          <Routes>
+            <Route
+              path="/login"
+              element={<Login setIsAuthenticated={setIsAuthenticated} />}
+            />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        )}
       </Router>
     </QueryClientProvider>
   )

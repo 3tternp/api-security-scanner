@@ -14,6 +14,7 @@ from app.models.scan import ScanJob, ScanResult
 from app.models.user import User
 from app.schemas.scan import (
     ScanJob as ScanJobSchema,
+    ScanJobSummary,
     ScanJobCreate,
     ScanResult as ScanResultSchema,
     ScanResultUpdate,
@@ -443,6 +444,32 @@ def get_dashboard_stats(
             rule = r.rule_id or "unknown"
             findings_by_rule[rule] = findings_by_rule.get(rule, 0) + 1
 
+        # Map scanner rule IDs → OWASP API Top 10 categories
+        RULE_TO_OWASP: Dict[str, str] = {
+            "BOLA-IDOR":        "API1",
+            "AUTH-MISSING":     "API2",
+            "JWT-001":          "API2",
+            "SENSITIVE-DATA":   "API3",
+            "MASS-ASSIGN-001":  "API3",
+            "RATE-LIMIT":       "API4",
+            "FUZZING":          "API4",
+            "BFLA-001":         "API5",
+            "BUSINESS-LOGIC":   "API6",
+            "SSRF-001":         "API7",
+            "SEC-HEADERS":      "API8",
+            "CORS-001":         "API8",
+            "HTML-INJ-001":     "API8",
+            "PATH-TRAV-001":    "API8",
+            "OPENAPI-CONTRACT": "API9",
+            "INJECTION-BASIC":  "API10",
+            "DESERIALIZATION":  "API10",
+        }
+        owasp_counts: Dict[str, int] = {}
+        for rule_id, count in findings_by_rule.items():
+            owasp_cat = RULE_TO_OWASP.get(rule_id)
+            if owasp_cat:
+                owasp_counts[owasp_cat] = owasp_counts.get(owasp_cat, 0) + count
+
         return DashboardStats(
             total_scans=total_scans,
             completed_scans=completed_scans,
@@ -455,24 +482,53 @@ def get_dashboard_stats(
             low_findings=low_findings,
             info_findings=info_findings,
             findings_by_rule=findings_by_rule,
+            owasp_counts=owasp_counts,
         )
     except Exception as e:
         logger.error(f"[ERROR] Failed to get dashboard stats: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/", response_model=List[ScanJobSchema])
+@router.get("/", response_model=List[ScanJobSummary])
 def read_scans(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
+    """Return lightweight scan summaries with finding counts (no full results payload)."""
+    from sqlalchemy import func
     logger.info("DEBUG: Entering read_scans")
     try:
-        scans = db.query(ScanJob).offset(skip).limit(limit).all()
-        logger.info(f"[DEBUG] Retrieved {len(scans)} scans")
-        return scans
+        # Subquery: count results per scan job
+        count_subq = (
+            db.query(ScanResult.job_id, func.count(ScanResult.id).label("finding_count"))
+            .group_by(ScanResult.job_id)
+            .subquery()
+        )
+        rows = (
+            db.query(ScanJob, count_subq.c.finding_count)
+            .outerjoin(count_subq, ScanJob.id == count_subq.c.job_id)
+            .order_by(ScanJob.id.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        summaries = []
+        for scan, fc in rows:
+            summaries.append(
+                ScanJobSummary(
+                    id=scan.id,
+                    target_url=scan.target_url,
+                    spec_url=scan.spec_url,
+                    status=scan.status,
+                    created_at=scan.created_at,
+                    completed_at=scan.completed_at,
+                    finding_count=fc or 0,
+                )
+            )
+        logger.info(f"[DEBUG] Retrieved {len(summaries)} scans")
+        return summaries
     except Exception as e:
         logger.error(f"[ERROR] Failed to read scans: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
@@ -536,13 +592,22 @@ def update_result_status(
 @router.get("/{scan_id}/report/docx")
 def download_docx_report(
     scan_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Generate and return a VAPT-style DOCX report for the given scan."""
+    import shutil
+
     scan = db.query(ScanJob).filter(ScanJob.id == scan_id).first()
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
+
+    if scan.status not in ("completed", "failed"):
+        raise HTTPException(
+            status_code=400,
+            detail="Report can only be generated for completed or failed scans.",
+        )
 
     results = db.query(ScanResult).filter(ScanResult.job_id == scan_id).all()
 
@@ -555,6 +620,9 @@ def download_docx_report(
     except Exception as e:
         logger.error(f"[ERROR] Failed to generate DOCX report: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
+
+    # Clean up the temp directory after the response is sent
+    background_tasks.add_task(shutil.rmtree, tmp_dir, True)
 
     return FileResponse(
         path=output_path,
