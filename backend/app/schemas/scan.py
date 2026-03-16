@@ -14,10 +14,10 @@ class ScanResultBase(BaseModel):
     rule_id: str
     severity: str
     description: str
-    details: Dict[str, Any]
+    details: Optional[Dict[str, Any]] = None
     endpoint: str
     method: str
-    
+
     # Metadata for PDF
     impact: Optional[str] = "Unknown"
     remediation: Optional[str] = "Unknown"
@@ -47,6 +47,19 @@ class ScanResult(ScanResultBase):
     class Config:
         from_attributes = True
 
+class ScanJobSummary(BaseModel):
+    """Lightweight scan summary for list views — no full results payload."""
+    id: int
+    target_url: str
+    spec_url: Optional[str] = None
+    status: str
+    created_at: datetime
+    completed_at: Optional[datetime] = None
+    finding_count: int = 0
+
+    class Config:
+        from_attributes = True
+
 class ScanJob(ScanJobBase):
     id: int
     status: str
@@ -69,3 +82,4 @@ class DashboardStats(BaseModel):
     low_findings: int
     info_findings: int
     findings_by_rule: Dict[str, int]
+    owasp_counts: Dict[str, int]

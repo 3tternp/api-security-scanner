@@ -6,6 +6,28 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
 
 ---
 
+## 📸 Screenshots
+
+### Login — Cybersecurity Theme
+![Login page with dark cybersecurity aesthetic, OWASP API1–API10 tag bar, shield icon and Scanner Online indicator](docs/screenshots/login.png)
+
+### Security Dashboard
+![Security Dashboard showing metric cards, severity breakdown with risk score gauge, and OWASP API Coverage Map grid](docs/screenshots/dashboard.png)
+
+### Scans List
+![Scans list page showing two completed scans with finding counts and action buttons](docs/screenshots/scans-list.png)
+
+### Scan Detail — Findings
+![Scan detail page showing 32 critical findings with severity filter bar, OPENAPI-CONTRACT rule violations with endpoint paths](docs/screenshots/scan-detail-top.png)
+
+### Findings with Expanded Details
+![Scan findings list scrolled to show multiple OPENAPI-CONTRACT critical findings with HTTP method badges and status dropdowns](docs/screenshots/scan-findings.png)
+
+### User Management
+![User management page with create-user form and existing users table showing role badges](docs/screenshots/users.png)
+
+---
+
 ## ⚙️ Features
 
 - OWASP API Top 10–oriented checks
