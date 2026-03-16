@@ -14,6 +14,20 @@ from app.models import user, scan
 user.Base.metadata.create_all(bind=engine)
 scan.Base.metadata.create_all(bind=engine)
 
+# Lightweight migration: ensure new columns exist in existing SQLite databases
+try:
+    from sqlalchemy import text
+    with engine.connect() as _conn:
+        for _col, _def in [("status", "VARCHAR DEFAULT 'Open'"), ("cvss_score", "VARCHAR DEFAULT ''")]:
+            try:
+                _conn.execute(text(f"ALTER TABLE scan_results ADD COLUMN {_col} {_def}"))
+                _conn.commit()
+                logger.info(f"Migration: added column scan_results.{_col}")
+            except Exception:
+                pass  # Column already exists
+except Exception as _e:
+    logger.warning(f"Migration step skipped: {_e}")
+
 app = FastAPI(title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json")
 
 # Set all CORS enabled origins

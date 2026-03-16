@@ -15,6 +15,13 @@ from app.scanner.rules.openapi_contract import OpenAPIContractRule
 from app.scanner.rules.deserialization import DeserializationRule
 from app.scanner.rules.fuzzing import FuzzingRule
 from app.scanner.rules.business_logic import BusinessLogicRule
+from app.scanner.rules.cors_check import CORSCheckRule
+from app.scanner.rules.html_injection import HTMLInjectionRule
+from app.scanner.rules.jwt_security import JWTSecurityRule
+from app.scanner.rules.ssrf_check import SSRFCheckRule
+from app.scanner.rules.mass_assignment import MassAssignmentRule
+from app.scanner.rules.broken_function_auth import BrokenFunctionAuthRule
+from app.scanner.rules.path_traversal import PathTraversalRule
 
 class ScannerEngine:
     def __init__(self, db: Session, scan_id: int):
@@ -31,6 +38,13 @@ class ScannerEngine:
             DeserializationRule(),
             FuzzingRule(),
             BusinessLogicRule(),
+            CORSCheckRule(),
+            HTMLInjectionRule(),
+            JWTSecurityRule(),
+            SSRFCheckRule(),
+            MassAssignmentRule(),
+            BrokenFunctionAuthRule(),
+            PathTraversalRule(),
         ]
 
     async def fetch_spec(self, url: str):

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(python -m uvicorn --version)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" install)",
+      "Bash(gh pr:*)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Users/ASUS/AppData/Local/Programs/**)",
+      "Bash(unzip -l 'C:\\\\Users\\\\ASUS\\\\Downloads\\\\Web Application VAPT Report \\(1.0\\) \\(1\\).docx')",
+      "Bash(python -m pip install python-docx)",
+      "Bash(python -c \":*)",
+      "Bash(curl -s http://localhost:8000/api/v1/scans/dashboard/stats -H \"Authorization: Bearer test\")"
+    ]
+  }
+}
