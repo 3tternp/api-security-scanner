@@ -11,6 +11,7 @@
       "Bash(python -m pip install python-docx)",
       "Bash(python -c \":*)",
       "Bash(curl -s http://localhost:8000/api/v1/scans/dashboard/stats -H \"Authorization: Bearer test\")",
+<<<<<<< Updated upstream
       "Bash(python -c \"import docx; print\\(''python-docx OK:'', docx.__version__\\)\")",
       "Bash(node -e \"console.log\\(''''node ok''''\\)\")",
       "Bash(npx --yes playwright --version)",
@@ -39,6 +40,9 @@
       "Bash(winget list:*)",
       "Bash(\"/c/Program Files/GitHub:*)",
       "Bash(\"/c/Users/ASUS/Documents/Github/API vulnerability:*)"
+=======
+      "WebFetch(domain:api-security-scanner-ctrenlha1-3tternps-projects.vercel.app)"
+>>>>>>> Stashed changes
     ]
   }
 }
