@@ -2,44 +2,67 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.api.api_v1.endpoints import login, users, scans
+from app.api.api_v1.endpoints import login, users, scans, setup
 from app.core.config import settings
 from app.db.session import engine
 from app.models import user, scan
 
-# Create tables
+# ── Create / migrate tables ───────────────────────────────────────────────────
 user.Base.metadata.create_all(bind=engine)
 scan.Base.metadata.create_all(bind=engine)
 
-# Lightweight migration: ensure new columns exist in existing SQLite databases
-try:
-    from sqlalchemy import text
-    with engine.connect() as _conn:
-        for _col, _def in [("status", "VARCHAR DEFAULT 'Open'"), ("cvss_score", "VARCHAR DEFAULT ''")]:
-            try:
-                _conn.execute(text(f"ALTER TABLE scan_results ADD COLUMN {_col} {_def}"))
-                _conn.commit()
-                logger.info(f"Migration: added column scan_results.{_col}")
-            except Exception:
-                pass  # Column already exists
-except Exception as _e:
-    logger.warning(f"Migration step skipped: {_e}")
+# ── App ───────────────────────────────────────────────────────────────────────
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    # Hide docs in production
+    docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
+)
 
-app = FastAPI(title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json")
 
-# Set all CORS enabled origins
+# ── Security headers middleware ───────────────────────────────────────────────
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next) -> Response:
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+        response.headers["Cache-Control"] = "no-store"
+        # Remove server fingerprint
+        response.headers.pop("server", None)
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+# ── CORS ──────────────────────────────────────────────────────────────────────
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_origins=[str(o) for o in settings.BACKEND_CORS_ORIGINS],
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "Accept"],
     )
 
-app.include_router(login.router, prefix=f"{settings.API_V1_STR}", tags=["login"])
-app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
-app.include_router(scans.router, prefix=f"{settings.API_V1_STR}/scans", tags=["scans"])
+# ── Run initial-data bootstrap ────────────────────────────────────────────────
+try:
+    from app.initial_data import init as _init
+    _init()
+except Exception as _e:
+    logger.warning(f"Initial data bootstrap skipped: {_e}")
+
+# ── Routes ────────────────────────────────────────────────────────────────────
+app.include_router(login.router,  prefix=f"{settings.API_V1_STR}",        tags=["auth"])
+app.include_router(setup.router,  prefix=f"{settings.API_V1_STR}/setup",  tags=["setup"])
+app.include_router(users.router,  prefix=f"{settings.API_V1_STR}/users",  tags=["users"])
+app.include_router(scans.router,  prefix=f"{settings.API_V1_STR}/scans",  tags=["scans"])

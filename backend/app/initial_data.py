@@ -1,43 +1,73 @@
+"""
+Bootstrap script — creates the initial admin user on first boot.
+
+Reads credentials from environment variables:
+  ADMIN_EMAIL     — required to auto-create the admin
+  ADMIN_PASSWORD  — required to auto-create the admin
+
+If neither is set the app starts normally; use the /api/v1/setup endpoint
+(or the Setup page in the UI) to create the first admin interactively.
+"""
 import logging
 import sys
 import os
 
-# Add parent dir to path so we can import app
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.db.session import SessionLocal, engine
+from app.models import user as user_model, scan as scan_model
 from app.models.user import User
-from app.core.security import get_password_hash
-from app.models import user as user_model
+from app.core.security import get_password_hash, validate_password_strength
+from app.core.config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def init():
+
+def init() -> None:
     db = SessionLocal()
-    
     try:
-        user = db.query(User).filter(User.email == "admin@example.com").first()
-        if not user:
-            user = User(
-                email="admin@example.com",
-                hashed_password=get_password_hash("admin123"),
-                role="admin",
-                is_active=True,
+        admin_exists = db.query(User).filter(User.role == "admin").first()
+        if admin_exists:
+            logger.info("Admin user already exists — skipping initial setup.")
+            return
+
+        admin_email = settings.ADMIN_EMAIL
+        admin_password = settings.ADMIN_PASSWORD
+
+        if not admin_email or not admin_password:
+            logger.warning(
+                "No admin found and ADMIN_EMAIL / ADMIN_PASSWORD are not set. "
+                "Visit /api/v1/setup in the UI to create the first admin account."
             )
-            db.add(user)
-            db.commit()
-            logger.info("Admin user created")
-        else:
-            logger.info("Admin user already exists")
-    except Exception as e:
-        logger.error(f"Error creating initial data: {e}")
+            return
+
+        errors = validate_password_strength(admin_password)
+        if errors:
+            logger.error(
+                f"ADMIN_PASSWORD does not meet requirements: {', '.join(errors)}. "
+                "Fix the env var and restart."
+            )
+            sys.exit(1)
+
+        admin = User(
+            email=admin_email,
+            hashed_password=get_password_hash(admin_password),
+            role="admin",
+            is_active=True,
+        )
+        db.add(admin)
+        db.commit()
+        logger.info(f"Initial admin account created: {admin_email}")
+    except Exception as exc:
+        logger.error(f"Failed to create initial data: {exc}", exc_info=True)
     finally:
         db.close()
 
+
 if __name__ == "__main__":
-    logger.info("Creating initial data")
-    # Ensure tables exist
+    logger.info("Running initial data setup...")
     user_model.Base.metadata.create_all(bind=engine)
+    scan_model.Base.metadata.create_all(bind=engine)
     init()
-    logger.info("Initial data created")
+    logger.info("Done.")
