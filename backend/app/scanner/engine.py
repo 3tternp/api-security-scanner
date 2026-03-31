@@ -22,6 +22,9 @@ from app.scanner.rules.ssrf_check import SSRFCheckRule
 from app.scanner.rules.mass_assignment import MassAssignmentRule
 from app.scanner.rules.broken_function_auth import BrokenFunctionAuthRule
 from app.scanner.rules.path_traversal import PathTraversalRule
+from app.scanner.rules.cookie_security import CookieSecurityRule
+from app.scanner.rules.tls_enforcement import TLSEnforcementRule
+from app.scanner.rules.fingerprint_headers import FingerprintHeadersRule
 
 class ScannerEngine:
     def __init__(self, db: Session, scan_id: int):
@@ -45,6 +48,9 @@ class ScannerEngine:
             MassAssignmentRule(),
             BrokenFunctionAuthRule(),
             PathTraversalRule(),
+            CookieSecurityRule(),
+            TLSEnforcementRule(),
+            FingerprintHeadersRule(),
         ]
 
     async def fetch_spec(self, url: str):

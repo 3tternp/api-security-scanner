@@ -16,11 +16,21 @@ const Login = ({ setIsAuthenticated }) => {
     setError('')
     setLoading(true)
     try {
-      const response = await login(email, password)
+      const response = await login(email.trim(), password)
       localStorage.setItem('token', response.data.access_token)
       setIsAuthenticated(true)
-    } catch {
-      setError('Invalid email or password. Please try again.')
+    } catch (err) {
+      const status = err?.response?.status
+      const detail = err?.response?.data?.detail
+      if (status === 429 && detail) {
+        setError(detail)
+      } else if (status === 401) {
+        setError('Incorrect email or password.')
+      } else if (detail) {
+        setError(detail)
+      } else {
+        setError('Login failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -79,7 +89,7 @@ const Login = ({ setIsAuthenticated }) => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               {/* Email */}
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
@@ -89,8 +99,9 @@ const Login = ({ setIsAuthenticated }) => {
                   <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                   <input
                     type="email"
+                    name="username"
                     required
-                    autoComplete="email"
+                    autoComplete="off"
                     placeholder="admin@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -109,8 +120,9 @@ const Login = ({ setIsAuthenticated }) => {
                   <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
+                    name="password"
                     required
-                    autoComplete="current-password"
+                    autoComplete="off"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

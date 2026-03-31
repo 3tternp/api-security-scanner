@@ -7,6 +7,10 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  const url = config?.url || '';
+  if (url.includes('/login/access-token')) {
+    return config;
+  }
   const token = localStorage.getItem('token');
   if (token) {
     if (!config.headers) {
@@ -20,6 +24,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const url = error?.config?.url || '';
+    if (url.includes('/login/access-token')) {
+      return Promise.reject(error);
+    }
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       localStorage.removeItem('token');
       window.location.href = '/';

@@ -2,6 +2,11 @@
 
 OWASP-focused API security scanner built with FastAPI and React.
 
+![CI](https://github.com/3tternp/api-security-scanner/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/github/license/3tternp/api-security-scanner)
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
+![Node](https://img.shields.io/badge/Node-18%2B-brightgreen)
+
 It performs static analysis of OpenAPI contracts and dynamic checks against live APIs, then presents findings in a web dashboard with exportable PDF and DOCX reports.
 
 ---
@@ -52,12 +57,12 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
 
 ## ⚙️ Features
 
-- OWASP API Top 10–oriented checks
-- OpenAPI contract analysis:
+- 🧭 OWASP API Top 10–oriented checks
+- 📄 OpenAPI contract analysis:
   - Missing or weak authentication on endpoints
   - Unrestricted file uploads
   - PII exposure in request/response schemas
-- Dynamic checks against a live target API:
+- 🛰️ Dynamic checks against a live target API:
   - Security headers and CORS misconfiguration
   - Rate limiting and resource consumption
   - BOLA / IDOR attempts by modifying object identifiers
@@ -67,21 +72,24 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
   - Sensitive data patterns in responses (emails, SSNs, API keys, etc.)
   - JWT algorithm confusion (e.g. `alg: none` bypass)
   - Mass assignment via unprotected writeable fields
-- Dashboard:
+  - TLS enforcement (HTTP vs HTTPS / redirects)
+  - Cookie security flags (HttpOnly / Secure / SameSite)
+  - Fingerprinting headers (e.g. `Server`, `X-Powered-By`)
+- 📊 Dashboard:
   - Real-time metrics (total scans, findings, open issues)
   - Severity breakdown with weighted risk score (0–100)
   - Interactive OWASP API Coverage Map grid
   - Recent scans summary
-- Scan detail:
+- 🔎 Scan detail:
   - Per-finding severity, rule ID, endpoint, and HTTP method
   - Inline triage status (Open / In Progress / Fixed / Accepted Risk)
   - Filter by severity and status
-- Report export:
+- 🧾 Report export:
   - **PDF** — multi-page professional report with cover page, severity summary, OWASP coverage table, and per-finding detail sections
   - **DOCX** — structured Word document with colour-coded severity rows
-- Basic authentication and roles (admin vs auditor)
-- Multi-user management UI for creating admin/auditor accounts
-- Optional HTTPS reverse proxy via Nginx with TLS
+- 🔐 Basic authentication and roles (admin vs auditor)
+- 👥 Multi-user management UI for creating admin/auditor accounts
+- 🛡️ Optional HTTPS reverse proxy via Nginx with TLS
 
 ---
 
