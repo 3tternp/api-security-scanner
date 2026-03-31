@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 from typing import Optional
 from functools import lru_cache
 
@@ -17,8 +18,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "production"  # development | production
 
     # ── JWT ──────────────────────────────────────────────────────────────────
-    # Must be set via environment variable or .env file. No default in production.
-    SECRET_KEY: str
+    SECRET_KEY: Optional[str] = None
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 8  # 8 hours
 
@@ -33,18 +33,30 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGIN_REGEX: Optional[str] = r"^https://.*-3tternps-projects\.vercel\.app$"
 
     # ── PostgreSQL ────────────────────────────────────────────────────────────
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
+    DATABASE_URL_RAW: Optional[str] = Field(default=None, validation_alias="DATABASE_URL")
+    POSTGRES_URL: Optional[str] = None
+    POSTGRES_URL_NON_POOLING: Optional[str] = None
+
+    POSTGRES_USER: Optional[str] = None
+    POSTGRES_PASSWORD: Optional[str] = None
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "apiscanner"
 
     @property
     def DATABASE_URL(self) -> str:
-        return (
-            f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-        )
+        if self.DATABASE_URL_RAW:
+            return self.DATABASE_URL_RAW
+        if self.POSTGRES_URL_NON_POOLING:
+            return self.POSTGRES_URL_NON_POOLING
+        if self.POSTGRES_URL:
+            return self.POSTGRES_URL
+        if self.POSTGRES_USER and self.POSTGRES_PASSWORD:
+            return (
+                f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+                f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            )
+        return "sqlite+pysqlite:///./app.db"
 
     # ── Initial admin (first-run only) ────────────────────────────────────────
     # Set these env vars to auto-create the admin on first boot.

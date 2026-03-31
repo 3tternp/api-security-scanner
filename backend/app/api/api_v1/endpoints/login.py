@@ -81,6 +81,9 @@ def login_access_token(
 
     _reset_failed_attempts(db, user)
 
+    if not settings.SECRET_KEY:
+        raise HTTPException(status_code=500, detail="Server misconfiguration: SECRET_KEY is not set.")
+
     access_token = security.create_access_token(
         subject=user.email,
         expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),

@@ -11,10 +11,6 @@ from app.core.config import settings
 from app.db.session import engine
 from app.models import user, scan
 
-# ── Create / migrate tables ───────────────────────────────────────────────────
-user.Base.metadata.create_all(bind=engine)
-scan.Base.metadata.create_all(bind=engine)
-
 # ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -24,6 +20,16 @@ app = FastAPI(
     docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
     redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
 )
+
+@app.on_event("startup")
+def _startup() -> None:
+    try:
+        user.Base.metadata.create_all(bind=engine)
+        scan.Base.metadata.create_all(bind=engine)
+        from app.initial_data import init as _init
+        _init()
+    except Exception as _e:
+        logger.warning(f"Startup bootstrap skipped: {_e}")
 
 
 # ── Security headers middleware ───────────────────────────────────────────────
@@ -54,13 +60,6 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type", "Accept"],
     )
-
-# ── Run initial-data bootstrap ────────────────────────────────────────────────
-try:
-    from app.initial_data import init as _init
-    _init()
-except Exception as _e:
-    logger.warning(f"Initial data bootstrap skipped: {_e}")
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 app.include_router(login.router,  prefix=f"{settings.API_V1_STR}",        tags=["auth"])
