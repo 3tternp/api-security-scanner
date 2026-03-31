@@ -13,9 +13,24 @@ from app.schemas.token import Token
 
 router = APIRouter()
 
+def _effective_max_login_attempts() -> int:
+    env = (settings.ENVIRONMENT or "").lower()
+    if env == "development":
+        return max(settings.MAX_LOGIN_ATTEMPTS, 20)
+    return settings.MAX_LOGIN_ATTEMPTS
+
+
+def _effective_lockout_minutes() -> int:
+    env = (settings.ENVIRONMENT or "").lower()
+    if env == "development":
+        return max(0, min(settings.LOCKOUT_MINUTES, 1))
+    return settings.LOCKOUT_MINUTES
+
 
 def _check_lockout(user: User) -> None:
     """Raise 429 if the account is still locked."""
+    if _effective_lockout_minutes() <= 0:
+        return
     if user.locked_until and user.locked_until > datetime.now(timezone.utc):
         remaining = int((user.locked_until - datetime.now(timezone.utc)).total_seconds() // 60) + 1
         raise HTTPException(
@@ -26,8 +41,10 @@ def _check_lockout(user: User) -> None:
 
 def _record_failed_attempt(db: Session, user: User) -> None:
     user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
-    if user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
-        user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=settings.LOCKOUT_MINUTES)
+    max_attempts = _effective_max_login_attempts()
+    lockout_minutes = _effective_lockout_minutes()
+    if max_attempts > 0 and lockout_minutes > 0 and user.failed_login_attempts >= max_attempts:
+        user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=lockout_minutes)
     db.add(user)
     db.commit()
 

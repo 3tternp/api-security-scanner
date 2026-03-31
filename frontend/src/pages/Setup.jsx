@@ -103,11 +103,15 @@ export default function Setup({ onSetupComplete }) {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Full name */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Full Name <span className="text-slate-500">(optional)</span></label>
+                <label htmlFor="setup-full-name" className="block text-sm font-medium text-slate-300 mb-1.5">
+                  Full Name <span className="text-slate-500">(optional)</span>
+                </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
+                    id="setup-full-name"
                     type="text"
+                    name="full_name"
                     value={form.fullName}
                     onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                     placeholder="Jane Smith"
@@ -118,11 +122,15 @@ export default function Setup({ onSetupComplete }) {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Admin Email <span className="text-red-400">*</span></label>
+                <label htmlFor="setup-email" className="block text-sm font-medium text-slate-300 mb-1.5">
+                  Admin Email <span className="text-red-400">*</span>
+                </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
+                    id="setup-email"
                     type="email"
+                    name="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     placeholder="admin@company.com"
@@ -134,11 +142,15 @@ export default function Setup({ onSetupComplete }) {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Password <span className="text-red-400">*</span></label>
+                <label htmlFor="setup-password" className="block text-sm font-medium text-slate-300 mb-1.5">
+                  Password <span className="text-red-400">*</span>
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
+                    id="setup-password"
                     type={showPassword ? 'text' : 'password'}
+                    name="password"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     placeholder="Min 12 chars, upper/lower/digit/special"
@@ -155,11 +167,15 @@ export default function Setup({ onSetupComplete }) {
 
               {/* Confirm password */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Confirm Password <span className="text-red-400">*</span></label>
+                <label htmlFor="setup-confirm-password" className="block text-sm font-medium text-slate-300 mb-1.5">
+                  Confirm Password <span className="text-red-400">*</span>
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
+                    id="setup-confirm-password"
                     type={showPassword ? 'text' : 'password'}
+                    name="confirm_password"
                     value={form.confirmPassword}
                     onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                     placeholder="Repeat your password"

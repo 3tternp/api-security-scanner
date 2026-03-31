@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api import deps
@@ -10,6 +11,10 @@ from app.models.user import User
 from app.schemas.user import User as UserSchema, UserCreate
 
 router = APIRouter()
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
 
 
 @router.get("/", response_model=List[UserSchema])
@@ -57,6 +62,29 @@ def read_user_me(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     return current_user
+
+
+@router.post("/me/password", status_code=204)
+def change_my_password(
+    payload: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> None:
+    if not security.verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect current password.")
+
+    errors = security.validate_password_strength(payload.new_password)
+    if errors:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Password is too weak. Required: {', '.join(errors)}.",
+        )
+
+    current_user.hashed_password = security.get_password_hash(payload.new_password)
+    current_user.failed_login_attempts = 0
+    current_user.locked_until = None
+    db.add(current_user)
+    db.commit()
 
 
 @router.delete("/{user_id}", status_code=204)

@@ -223,8 +223,10 @@ const NewScanModal = ({ onClose, onSubmit, isPending }) => {
 
           {/* Authentication */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Authentication</label>
+            <label htmlFor="scan-auth-type" className="block text-sm font-medium text-gray-700 mb-1">Authentication</label>
             <select
+              id="scan-auth-type"
+              name="auth_type"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent mb-2"
               value={authType}
               onChange={(e) => setAuthType(e.target.value)}
@@ -236,9 +238,11 @@ const NewScanModal = ({ onClose, onSubmit, isPending }) => {
 
             {authType === 'bearer' && (
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Token</label>
+                <label htmlFor="scan-bearer-token" className="block text-xs text-gray-500 mb-1">Token</label>
                 <input
+                  id="scan-bearer-token"
                   type="text"
+                  name="bearer_token"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   placeholder="eyJhbGciOi..."
                   value={authToken}
@@ -250,9 +254,11 @@ const NewScanModal = ({ onClose, onSubmit, isPending }) => {
             {authType === 'basic' && (
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="block text-xs text-gray-500 mb-1">Username</label>
+                  <label htmlFor="scan-basic-username" className="block text-xs text-gray-500 mb-1">Username</label>
                   <input
+                    id="scan-basic-username"
                     type="text"
+                    name="basic_username"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                     placeholder="admin"
                     value={basicUser}
@@ -260,9 +266,11 @@ const NewScanModal = ({ onClose, onSubmit, isPending }) => {
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs text-gray-500 mb-1">Password</label>
+                  <label htmlFor="scan-basic-password" className="block text-xs text-gray-500 mb-1">Password</label>
                   <input
+                    id="scan-basic-password"
                     type="password"
+                    name="basic_password"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                     placeholder="secret"
                     value={basicPass}

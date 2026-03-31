@@ -92,12 +92,16 @@ const Login = ({ setIsAuthenticated }) => {
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               {/* Email */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
+                <label
+                  htmlFor="login-email"
+                  className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5"
+                >
                   Email Address
                 </label>
                 <div className="relative">
                   <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                   <input
+                    id="login-email"
                     type="email"
                     name="username"
                     required
@@ -113,12 +117,16 @@ const Login = ({ setIsAuthenticated }) => {
 
               {/* Password */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
+                <label
+                  htmlFor="login-password"
+                  className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5"
+                >
                   Password
                 </label>
                 <div className="relative">
                   <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                   <input
+                    id="login-password"
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     required

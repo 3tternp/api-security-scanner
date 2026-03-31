@@ -55,10 +55,11 @@ const Users = () => {
         {error && <p className="text-red-600 mb-3">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="create-user-email" className="block text-sm font-medium text-slate-700 mb-1">
               Email
             </label>
             <input
+              id="create-user-email"
               type="email"
               name="email"
               value={form.email}
@@ -68,10 +69,11 @@ const Users = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="create-user-password" className="block text-sm font-medium text-slate-700 mb-1">
               Password
             </label>
             <input
+              id="create-user-password"
               type="password"
               name="password"
               value={form.password}
@@ -81,10 +83,11 @@ const Users = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="create-user-role" className="block text-sm font-medium text-slate-700 mb-1">
               Role
             </label>
             <select
+              id="create-user-role"
               name="role"
               value={form.role}
               onChange={handleChange}
