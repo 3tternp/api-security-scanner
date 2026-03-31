@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 from typing import Optional
@@ -56,6 +57,8 @@ class Settings(BaseSettings):
                 f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
                 f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
             )
+        if os.getenv("VERCEL") == "1":
+            return "sqlite+pysqlite:////tmp/app.db"
         return "sqlite+pysqlite:///./app.db"
 
     # ── Initial admin (first-run only) ────────────────────────────────────────
