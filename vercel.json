@@ -4,13 +4,6 @@
   "installCommand": "cd frontend && npm install",
   "devCommand": "cd frontend && npm run dev",
   "framework": "vite",
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.12",
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  },
   "rewrites": [
     { "source": "/api/v1/(.*)", "destination": "/api/index.py" },
     { "source": "/(.*)", "destination": "/index.html" }
