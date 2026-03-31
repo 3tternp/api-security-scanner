@@ -1,8 +1,22 @@
 import axios from 'axios';
 
+const isLocalhostUrl = (value) => {
+  try {
+    const u = new URL(value);
+    return u.hostname === 'localhost' || u.hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+};
+
 const resolveApiUrl = () => {
   const fromEnv = import.meta.env.VITE_API_URL;
-  if (fromEnv) return fromEnv;
+  if (fromEnv) {
+    if (!import.meta.env.DEV && isLocalhostUrl(fromEnv)) {
+      return `${window.location.origin}/api/v1`;
+    }
+    return fromEnv;
+  }
 
   if (import.meta.env.DEV) return 'http://localhost:8000/api/v1';
   return `${window.location.origin}/api/v1`;
