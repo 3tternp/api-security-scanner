@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import Login from './pages/Login.jsx'
 import Setup from './pages/Setup.jsx'
 import Dashboard from './pages/Dashboard.jsx'
@@ -70,6 +71,7 @@ function App() {
           </Routes>
         )}
       </Router>
+      <SpeedInsights />
     </QueryClientProvider>
   )
 }
