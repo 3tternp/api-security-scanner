@@ -1,6 +1,14 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const resolveApiUrl = () => {
+  const fromEnv = import.meta.env.VITE_API_URL;
+  if (fromEnv) return fromEnv;
+
+  if (import.meta.env.DEV) return 'http://localhost:8000/api/v1';
+  return `${window.location.origin}/api/v1`;
+};
+
+const API_URL = resolveApiUrl();
 
 const api = axios.create({
   baseURL: API_URL,

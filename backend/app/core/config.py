@@ -28,7 +28,9 @@ class Settings(BaseSettings):
         "http://localhost:5174",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
+        "https://api-security-scanner-ild7yx8ci-3tternps-projects.vercel.app",
     ]
+    BACKEND_CORS_ORIGIN_REGEX: Optional[str] = r"^https://.*-3tternps-projects\.vercel\.app$"
 
     # ── PostgreSQL ────────────────────────────────────────────────────────────
     POSTGRES_USER: str
