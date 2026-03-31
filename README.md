@@ -148,7 +148,7 @@ python -m venv .venv
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# Initialise the database and create the default admin user
+# Initialise the database (and create the first admin if ADMIN_EMAIL / ADMIN_PASSWORD are set)
 python -m app.initial_data
 
 # Start the API server
@@ -162,6 +162,12 @@ API is available at `http://localhost:8001/api/v1`
 ```bash
 cd frontend
 npm install
+
+# Point the frontend at the local backend (optional, default is http://localhost:8000/api/v1)
+# Windows PowerShell:
+#   $env:VITE_API_URL="http://localhost:8001/api/v1"
+# Linux / macOS:
+#   export VITE_API_URL="http://localhost:8001/api/v1"
 npm run dev
 ```
 
@@ -169,10 +175,9 @@ Frontend runs at `http://localhost:5173`
 
 ### 4. Log in
 
-| Field | Value |
-|---|---|
-| Email | `admin@example.com` |
-| Password | `admin123` |
+Log in with the admin account you created:
+- If you set `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`, use those credentials.
+- Otherwise create the first admin via the Setup page in the UI (first run only).
 
 > ⚠️ Change these credentials before deploying to any shared environment.
 
@@ -205,26 +210,29 @@ openssl req -x509 -nodes -days 365 \
 ### 3. Build and run
 
 ```bash
-docker compose build
-docker compose up
+# Run without the HTTPS reverse proxy (recommended for local development)
+docker compose up --build db backend frontend
+
+# If you're using the standalone docker-compose binary:
+# docker-compose up --build db backend frontend
 ```
 
 | Service | Description |
 |---|---|
 | `backend` | FastAPI API on port 8000 (internal) |
 | `frontend` | React app on port 5173 |
-| `reverse-proxy` | Nginx TLS termination on port 443 |
+| `reverse-proxy` | Nginx TLS termination on port 443 (optional; enable via Compose profile `tls`) |
 | `db` | PostgreSQL (when configured) |
 
 Access the app:
-- Via HTTPS: `https://localhost/` *(accept the self-signed cert)*
 - Direct frontend: `http://localhost:5173/`
+- Via HTTPS (optional): create certs, then run `docker compose --profile tls up --build` and open `https://localhost/` *(accept the self-signed cert)*
 
 ---
 
 ## 📊 Usage
 
-1. Log in as `admin@example.com` / `admin123`.
+1. Log in using the admin credentials you configured in `.env` (`ADMIN_EMAIL` / `ADMIN_PASSWORD`) or created via the Setup page.
 2. Go to **Scans → New Scan** and provide:
    - Target URL (e.g. `https://api.example.com`)
    - Optional OpenAPI spec URL or JSON file upload

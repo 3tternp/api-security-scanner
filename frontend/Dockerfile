@@ -1,16 +1,14 @@
 FROM node:22-alpine
 
-# Security: run as non-root
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
 WORKDIR /app
+RUN chown appuser:appgroup /app
 
-COPY package*.json ./
-RUN npm ci --omit=dev
-
-COPY . .
-
-RUN chown -R appuser:appgroup /app
+COPY --chown=appuser:appgroup package*.json ./
 USER appuser
+RUN npm ci
+
+COPY --chown=appuser:appgroup . .
 
 CMD ["npm", "run", "dev", "--", "--host"]
