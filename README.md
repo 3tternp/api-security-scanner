@@ -238,6 +238,44 @@ Access the app:
 
 ---
 
+## 🟦 Windows: Run on Startup (Docker)
+
+If you want the app to automatically start again after a PC restart, use the provided PowerShell scripts.
+
+### Run now
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-app.ps1
+```
+
+Foreground mode (shows logs in the terminal):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-app.ps1 -Detach:$false
+```
+
+### Install auto-start
+
+At user logon (recommended):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-startup-task.ps1
+```
+
+At system startup (requires Administrator):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-startup-task.ps1 -AtStartup
+```
+
+To remove the task later:
+
+```powershell
+Unregister-ScheduledTask -TaskName "ApiSecurityScanner" -Confirm:$false
+```
+
+---
+
 ## 📊 Usage
 
 1. Log in using the admin credentials you configured in `.env` (`ADMIN_EMAIL` / `ADMIN_PASSWORD`) or created via the Setup page.
