@@ -1,0 +1,20 @@
+stages:
+  - backend
+  - frontend
+
+backend:
+  image: python:3.11-slim
+  stage: backend
+  script:
+    - python -m pip install --upgrade pip
+    - pip install -r backend/requirements.txt
+    - python -m compileall backend/app
+
+frontend:
+  image: node:18-alpine
+  stage: frontend
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+
