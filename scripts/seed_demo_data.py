@@ -1,8 +1,14 @@
-"""Seed the database with generic demo data for screenshot capture."""
+"""Seed the database with generic demo data for screenshot capture.
+
+Run from anywhere — resolves the backend's SQLite file (backend/app.db,
+matching the default DATABASE_URL in app/core/config.py) relative to this
+script's own location rather than a hardcoded absolute path.
+"""
 import sqlite3
 import datetime
+import os
 
-DB = r'C:\Users\ASUS\Documents\Github\API vulnerability scanner\.claude\worktrees\mystifying-knuth\backend\sql_app_v2.db'
+DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "backend", "app.db")
 conn = sqlite3.connect(DB)
 cur = conn.cursor()
 
