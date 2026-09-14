@@ -29,6 +29,10 @@ from app.scanner.rules.cookie_security import CookieSecurityRule
 from app.scanner.rules.tls_enforcement import TLSEnforcementRule
 from app.scanner.rules.fingerprint_headers import FingerprintHeadersRule
 from app.scanner.rules.crypto_oracle import CryptoOracleRule
+from app.scanner.rules.trace_method import TraceMethodRule
+from app.scanner.rules.method_override import MethodOverrideRule
+from app.scanner.rules.graphql_introspection import GraphQLIntrospectionRule
+from app.scanner.rules.error_disclosure import ErrorDisclosureRule
 
 SEVERITY_TIERS = ["critical", "high", "medium", "low", "info"]
 
@@ -99,6 +103,10 @@ class ScannerEngine:
             TLSEnforcementRule(),
             FingerprintHeadersRule(),
             CryptoOracleRule(),
+            TraceMethodRule(),
+            MethodOverrideRule(),
+            GraphQLIntrospectionRule(),
+            ErrorDisclosureRule(),
         ]
 
     async def fetch_spec(self, url: str):
