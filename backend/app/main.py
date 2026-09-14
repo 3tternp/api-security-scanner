@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -12,18 +13,9 @@ from app.db.session import engine
 from app.db.schema_sync import ensure_columns
 from app.models import scan
 
-# ── App ───────────────────────────────────────────────────────────────────────
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    # Hide docs in production
-    docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
-    redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
-)
 
-@app.on_event("startup")
-def _startup() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     try:
         scan.Base.metadata.create_all(bind=engine)
         # Reconcile columns for databases that pre-date the confidence/signals
@@ -36,6 +28,19 @@ def _startup() -> None:
         })
     except Exception as _e:
         logger.warning(f"Startup bootstrap skipped: {_e}")
+    yield
+
+
+# ── App ───────────────────────────────────────────────────────────────────────
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    # Hide docs in production
+    docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
+    lifespan=lifespan,
+)
 
 
 # ── Security headers middleware ───────────────────────────────────────────────

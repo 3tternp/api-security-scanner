@@ -4,8 +4,8 @@ OWASP-focused API security scanner built with FastAPI and React.
 
 ![CI](https://github.com/3tternp/api-security-scanner/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/github/license/3tternp/api-security-scanner)
-![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
-![Node](https://img.shields.io/badge/Node-18%2B-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.14%2B-blue)
+![Node](https://img.shields.io/badge/Node-24%2B-brightgreen)
 
 It performs static analysis of OpenAPI contracts and dynamic checks against live APIs, then presents findings in a web dashboard with exportable PDF and DOCX reports.
 
@@ -83,8 +83,8 @@ It performs static analysis of OpenAPI contracts and dynamic checks against live
 
 | Layer | Technologies |
 |---|---|
-| Backend | FastAPI 0.141 · SQLAlchemy 2.0 · Uvicorn · SQLite (dev) / PostgreSQL (Docker) |
-| Frontend | React + Vite · React Router v6 · TanStack Query · Axios · Tailwind CSS · Lucide icons |
+| Backend | FastAPI 0.141 · SQLAlchemy 2.0 · Uvicorn · SQLite (dev) / PostgreSQL 18 (Docker) |
+| Frontend | React 19 + Vite 8 · React Router v7 · TanStack Query · Axios · Tailwind CSS v4 · Lucide icons |
 | Reports | jsPDF + jspdf-autotable (PDF) · python-docx 1.x (DOCX) |
 | Container | Docker · Docker Compose · Nginx (HTTPS reverse proxy) |
 

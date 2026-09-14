@@ -352,8 +352,8 @@ const ScanDetail = () => {
       doc.setFontSize(10)
       doc.setTextColor(0, 0, 0)
 
-      let affectedIPs = ''
-      let port = ''
+      let affectedIPs
+      let port
       try {
         const urlObj = new URL(scan.target_url)
         port = urlObj.port || (urlObj.protocol === 'https:' ? '443' : '80')

@@ -3,7 +3,7 @@ stages:
   - frontend
 
 backend:
-  image: python:3.11-slim
+  image: python:3.14-slim
   stage: backend
   script:
     - python -m pip install --upgrade pip
@@ -11,7 +11,7 @@ backend:
     - python -m compileall backend/app
 
 frontend:
-  image: node:18-alpine
+  image: node:24-alpine
   stage: frontend
   script:
     - cd frontend

@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class ScanJobBase(BaseModel):
     target_url: str
@@ -46,8 +46,7 @@ class ScanResult(ScanResultBase):
     id: int
     job_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ScanJobSummary(BaseModel):
     """Lightweight scan summary for list views — no full results payload."""
@@ -59,8 +58,7 @@ class ScanJobSummary(BaseModel):
     completed_at: Optional[datetime] = None
     finding_count: int = 0
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ScanJob(ScanJobBase):
     id: int
@@ -69,8 +67,7 @@ class ScanJob(ScanJobBase):
     completed_at: Optional[datetime] = None
     results: List[ScanResult] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DashboardStats(BaseModel):
     total_scans: int
