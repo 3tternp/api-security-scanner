@@ -43,6 +43,11 @@ app = FastAPI(
 )
 
 
+@app.get(f"{settings.API_V1_STR}/version", tags=["meta"])
+def get_version() -> dict:
+    return {"name": settings.PROJECT_NAME, "version": settings.VERSION}
+
+
 # ── Security headers middleware ───────────────────────────────────────────────
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:

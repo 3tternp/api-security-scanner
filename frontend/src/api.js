@@ -44,6 +44,9 @@ export const updateFindingStatus = (resultId, status) =>
 export const getDashboardStats = () =>
   api.get('/scans/dashboard/stats');
 
+// Get backend app version
+export const getVersion = () => api.get('/version');
+
 // Download DOCX report - returns blob
 export const downloadDocxReport = (scanId) =>
   api.get(`/scans/${scanId}/report/docx`, { responseType: 'blob' });
