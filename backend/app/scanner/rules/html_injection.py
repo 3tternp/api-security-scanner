@@ -33,20 +33,27 @@ class HTMLInjectionRule(BaseRule):
         "<svg/onload=alert(1)>",
     ]
     PARAM_NAMES = ["q", "search", "name", "input"]
-    # Markers we look for in the response body (raw tags reflected back)
-    REFLECTION_MARKERS = ["<h1>", "<script>", "<img ", "<svg"]
 
     async def run(self, target_url: str, endpoints: List[Dict], config: Dict, baseline_cache=None) -> List[Dict]:
         findings = []
         test_endpoints = endpoints[:5]
 
-        async with httpx.AsyncClient(verify=False, timeout=8.0) as client:
+        headers = {}
+        if config.get('auth_header'):
+            headers['Authorization'] = config['auth_header']
+
+        async with httpx.AsyncClient(verify=False, timeout=8.0, headers=headers) as client:
             for ep in test_endpoints:
                 path = ep.get("path", "/")
                 method = ep.get("method", "GET").upper()
                 url = f"{target_url.rstrip('/')}{path}"
 
+                baseline = await baseline_cache.get(client, "GET", path) if baseline_cache else None
+                baseline_text = (baseline.body if baseline else "").lower()
+
                 for payload in self.PAYLOADS:
+                    payload_lower = payload.lower()
+
                     # Test via query parameters
                     for param in self.PARAM_NAMES:
                         try:
@@ -58,24 +65,29 @@ class HTMLInjectionRule(BaseRule):
                             # the same raw string back isn't exploitable here.
                             if not is_html_context(content_type):
                                 continue
-                            for marker in self.REFLECTION_MARKERS:
-                                if marker.lower() in body.lower():
-                                    findings.append(self.build_finding(
-                                        description="HTML injection payload reflected in response.",
-                                        details=(
-                                            f"The payload '{payload}' sent as query parameter "
-                                            f"'{param}' was reflected in the response body "
-                                            f"without encoding. URL: {url}"
-                                        ),
-                                        endpoint=path,
-                                        method="GET",
-                                        proof_of_concept=(
-                                            f"GET {url}?{param}={payload}\n"
-                                            f"Response contained: {marker}"
-                                        ),
-                                        signals=["payload_reflected_unescaped", "html_content_type"],
-                                    ))
-                                    break  # one finding per param/payload combo
+                            # Check for THIS payload specifically, not just any
+                            # marker drawn from the whole payload set — matching
+                            # "<script>" just because a real page's own bundled
+                            # JS happens to contain a <script> tag (true of
+                            # almost every HTML page) is not a reflection of
+                            # what we sent.
+                            if payload_lower in body.lower() and payload_lower not in baseline_text:
+                                findings.append(self.build_finding(
+                                    description="HTML injection payload reflected in response.",
+                                    details=(
+                                        f"The payload '{payload}' sent as query parameter "
+                                        f"'{param}' was reflected verbatim in the response "
+                                        f"body without encoding. URL: {url}"
+                                    ),
+                                    endpoint=path,
+                                    method="GET",
+                                    proof_of_concept=(
+                                        f"GET {url}?{param}={payload}\n"
+                                        f"Response contained: {payload}"
+                                    ),
+                                    signals=["payload_reflected_verbatim", "html_content_type", "absent_on_baseline"],
+                                ))
+                                break  # one finding per param/payload combo
                         except Exception:
                             pass
 
@@ -92,25 +104,24 @@ class HTMLInjectionRule(BaseRule):
                                 content_type = resp.headers.get("content-type", "")
                                 if not is_html_context(content_type):
                                     continue
-                                for marker in self.REFLECTION_MARKERS:
-                                    if marker.lower() in body.lower():
-                                        findings.append(self.build_finding(
-                                            description="HTML injection payload reflected in response body.",
-                                            details=(
-                                                f"The payload '{payload}' sent in the request body "
-                                                f"field '{param}' was reflected in the response "
-                                                f"without encoding. URL: {url}, Method: {method}"
-                                            ),
-                                            endpoint=path,
-                                            method=method,
-                                            proof_of_concept=(
-                                                f"{method} {url}\n"
-                                                f"Body: {{\"{param}\": \"{payload}\"}}\n"
-                                                f"Response contained: {marker}"
-                                            ),
-                                            signals=["payload_reflected_unescaped", "html_content_type"],
-                                        ))
-                                        break
+                                if payload_lower in body.lower() and payload_lower not in baseline_text:
+                                    findings.append(self.build_finding(
+                                        description="HTML injection payload reflected in response body.",
+                                        details=(
+                                            f"The payload '{payload}' sent in the request body "
+                                            f"field '{param}' was reflected verbatim in the "
+                                            f"response without encoding. URL: {url}, Method: {method}"
+                                        ),
+                                        endpoint=path,
+                                        method=method,
+                                        proof_of_concept=(
+                                            f"{method} {url}\n"
+                                            f"Body: {{\"{param}\": \"{payload}\"}}\n"
+                                            f"Response contained: {payload}"
+                                        ),
+                                        signals=["payload_reflected_verbatim", "html_content_type", "absent_on_baseline"],
+                                    ))
+                                    break
                             except Exception:
                                 pass
 

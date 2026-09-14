@@ -33,7 +33,16 @@ class OpenAPIContractRule(BaseRule):
                 # OpenAPI shape and flagging every Postman endpoint as
                 # unauthenticated.
                 is_postman = details.get('source') == 'postman'
-                auth_declared = bool(details.get('postman_auth')) if is_postman else ('security' in details)
+                if is_postman:
+                    auth_declared = bool(details.get('postman_auth'))
+                else:
+                    # Per-operation 'security' (even an explicit empty list,
+                    # meaning "this operation deliberately opts out") counts
+                    # as declared. Otherwise fall back to whether the spec
+                    # declares 'security' globally at the document root —
+                    # the standard way to secure every operation at once
+                    # without repeating it per-endpoint.
+                    auth_declared = 'security' in details or bool(details.get('_global_security_defined'))
 
                 if not auth_declared:
                     poc_data = {
