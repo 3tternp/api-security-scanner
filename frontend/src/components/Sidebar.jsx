@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   LayoutDashboard,
   ScanSearch,
@@ -8,6 +9,7 @@ import {
   ChevronRight,
   Activity,
 } from 'lucide-react'
+import { getVersion } from '../api'
 
 const NAV_ITEMS = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -42,6 +44,13 @@ const Sidebar = () => {
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
 
+  const { data: versionInfo } = useQuery({
+    queryKey: ['version'],
+    queryFn: async () => (await getVersion()).data,
+    staleTime: Infinity,
+    retry: 1,
+  })
+
   return (
     <aside
       className={`
@@ -59,7 +68,9 @@ const Sidebar = () => {
         {!collapsed && (
           <div className="min-w-0">
             <p className="text-sm font-bold text-white leading-tight truncate">API Scanner</p>
-            <p className="text-[10px] text-slate-500 leading-tight">Security Platform</p>
+            <p className="text-[10px] text-slate-500 leading-tight">
+              Security Platform{versionInfo?.version ? ` · v${versionInfo.version}` : ''}
+            </p>
           </div>
         )}
       </div>
