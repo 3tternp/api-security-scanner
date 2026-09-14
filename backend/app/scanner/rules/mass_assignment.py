@@ -53,7 +53,11 @@ class MassAssignmentRule(BaseRule):
             if ep.get("method", "GET").upper() in WRITE_METHODS
         ]
 
-        async with httpx.AsyncClient(verify=False, timeout=8.0) as client:
+        headers = {}
+        if config.get('auth_header'):
+            headers['Authorization'] = config['auth_header']
+
+        async with httpx.AsyncClient(verify=False, timeout=8.0, headers=headers) as client:
             for ep in write_endpoints:
                 path = ep.get("path", "/")
                 method = ep.get("method", "POST").upper()

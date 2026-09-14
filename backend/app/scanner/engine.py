@@ -134,9 +134,18 @@ class ScannerEngine:
 
         endpoints = []
         paths = spec.get('paths', {})
+        # OpenAPI allows 'security' to be declared once at the document root,
+        # applying to every operation that doesn't override it — the common,
+        # recommended pattern. A rule that only looks at each operation's own
+        # 'security' key (see OPENAPI-CONTRACT) needs this to avoid treating
+        # every endpoint in a globally-secured spec as unauthenticated.
+        has_global_security = bool(spec.get('security'))
         for path, methods in paths.items():
             for method, details in methods.items():
                 if method.lower() in ['get', 'post', 'put', 'delete', 'patch']:
+                    details = dict(details) if isinstance(details, dict) else details
+                    if isinstance(details, dict):
+                        details['_global_security_defined'] = has_global_security
                     endpoints.append({
                         'path': path,
                         'method': method.upper(),

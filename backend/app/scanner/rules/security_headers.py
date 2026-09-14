@@ -2,6 +2,7 @@ import httpx
 import json
 from typing import List, Dict
 from app.scanner.rules.base import BaseRule
+from app.scanner.signals import is_html_context
 
 class SecurityHeadersRule(BaseRule):
     id = "SEC-HEADERS"
@@ -22,6 +23,7 @@ class SecurityHeadersRule(BaseRule):
             async with httpx.AsyncClient(verify=False) as client:
                 response = await client.get(target_url)
                 headers = response.headers
+                content_type = headers.get("content-type", "")
 
                 csp = headers.get("Content-Security-Policy", "")
                 has_frame_ancestors = "frame-ancestors" in csp.lower()
@@ -43,6 +45,13 @@ class SecurityHeadersRule(BaseRule):
                     # the app has deliberately chosen the CSP mechanism.
                     if h == "X-Frame-Options" and has_frame_ancestors:
                         continue
+                    # X-Frame-Options / CSP exist to stop a page from being
+                    # framed for clickjacking — only meaningful for responses
+                    # a browser renders as HTML. A pure JSON API response
+                    # can't be clickjacked, so flagging it as "missing" here
+                    # is a low-value false positive for that content type.
+                    if h in ("X-Frame-Options", "Content-Security-Policy") and not is_html_context(content_type):
+                        continue
                     missing_headers.append(h)
 
                 if missing_headers:
@@ -58,19 +67,11 @@ class SecurityHeadersRule(BaseRule):
                         severity="low"
                     ))
 
-                if "Access-Control-Allow-Origin" in headers:
-                    if headers["Access-Control-Allow-Origin"] == "*":
-                         findings.append(self.build_finding(
-                            description="CORS Access-Control-Allow-Origin is set to wildcard (*)",
-                            details={
-                                "explanation": "The Access-Control-Allow-Origin header is set to *, allowing any domain to access resources.",
-                                "owasp": "API8: Security Misconfiguration"
-                            },
-                            proof_of_concept=f"Response Headers:\n{json.dumps(dict(headers), indent=2)}",
-                            endpoint="/",
-                            method="GET",
-                            severity="medium"
-                        ))
+                # CORS misconfiguration (wildcard/reflected origin, credentials
+                # interaction, null-origin acceptance) is handled exhaustively
+                # by CORSCheckRule (CORS-001), which probes multiple origins
+                # and methods — duplicating a bare wildcard check here just
+                # produces a second, less-detailed finding for the same issue.
 
         except Exception as e:
             pass # Handle errors gracefully

@@ -81,7 +81,15 @@ class SSRFCheckRule(BaseRule):
         if baseline_ms and elapsed_ms >= max(baseline_ms * TIMING_ANOMALY_RATIO, TIMING_ANOMALY_MIN_MS):
             signals.append("timing_anomaly")
 
-        return (len(signals) > 0, signals, matched_indicator)
+        # Timing alone is too noisy to trust as sole evidence: probes run
+        # concurrently (bounded_gather), so queueing delay from the burst of
+        # in-flight requests can slow a probe relative to the single
+        # sequential baseline measurement, independent of whether the server
+        # actually made an outbound connection. Require a body-based
+        # indicator (metadata marker or connection error) to actually trigger
+        # a finding — timing only ever corroborates one of those.
+        has_body_signal = "metadata_marker_found" in signals or "connection_attempt_error" in signals
+        return (has_body_signal, signals, matched_indicator)
 
     async def _probe_query(self, client, target_url, ep, payload, param, baseline_ms) -> Optional[Tuple[Dict, str]]:
         path = ep.get("path", "/")
@@ -171,7 +179,11 @@ class SSRFCheckRule(BaseRule):
         if not ssrf_candidates:
             ssrf_candidates = endpoints
 
-        async with httpx.AsyncClient(verify=False, timeout=8.0) as client:
+        headers = {}
+        if config.get('auth_header'):
+            headers['Authorization'] = config['auth_header']
+
+        async with httpx.AsyncClient(verify=False, timeout=8.0, headers=headers) as client:
             # Baseline timing per endpoint first (one request each, sequential —
             # cheap relative to the full payload x param sweep below).
             baseline_ms_by_path: Dict[str, float] = {}

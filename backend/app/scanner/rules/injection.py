@@ -24,11 +24,11 @@ class InjectionRule(BaseRule):
             "XSS": ["<script>alert(1)</script>", "\"><script>alert(1)</script>"]
         }
 
-        async with httpx.AsyncClient(verify=False) as client:
-            headers = {}
-            if config.get('auth_header'):
-                headers['Authorization'] = config['auth_header']
+        headers = {}
+        if config.get('auth_header'):
+            headers['Authorization'] = config['auth_header']
 
+        async with httpx.AsyncClient(verify=False, headers=headers) as client:
             for endpoint in endpoints:
                 if endpoint['method'] != 'GET':
                     continue
