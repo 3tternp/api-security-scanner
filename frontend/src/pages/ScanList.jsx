@@ -106,7 +106,11 @@ const ScanCard = ({ scan, onDelete, deleteLoading }) => {
   )
 }
 
-const NewScanModal = ({ onClose, onSubmit, isPending }) => {
+// btoa() only accepts Latin1 — credentials with any other character (e.g.
+// from a password manager's generated string) make it throw synchronously.
+const toBase64Utf8 = (str) => btoa(unescape(encodeURIComponent(str)))
+
+const NewScanModal = ({ onClose, onSubmit, isPending, serverError }) => {
   const [targetUrl, setTargetUrl] = useState('')
   const [specUrl, setSpecUrl] = useState('')
   const [specFile, setSpecFile] = useState(null)
@@ -115,34 +119,46 @@ const NewScanModal = ({ onClose, onSubmit, isPending }) => {
   const [authToken, setAuthToken] = useState('')
   const [basicUser, setBasicUser] = useState('')
   const [basicPass, setBasicPass] = useState('')
+  const [formError, setFormError] = useState('')
+  const [isPreparing, setIsPreparing] = useState(false)
+
+  const busy = isPending || isPreparing
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setFormError('')
+    setIsPreparing(true)
 
-    let finalAuthHeader = ''
-    if (authType === 'bearer' && authToken) {
-      finalAuthHeader = `Bearer ${authToken}`
-    } else if (authType === 'basic' && basicUser && basicPass) {
-      finalAuthHeader = `Basic ${btoa(`${basicUser}:${basicPass}`)}`
-    }
-
-    let specContent = undefined
-    if (specSource === 'file' && specFile) {
-      try {
-        const text = await specFile.text()
-        specContent = JSON.parse(text)
-      } catch {
-        alert('Invalid JSON file')
-        return
+    try {
+      let finalAuthHeader = ''
+      if (authType === 'bearer' && authToken) {
+        finalAuthHeader = `Bearer ${authToken}`
+      } else if (authType === 'basic' && basicUser && basicPass) {
+        finalAuthHeader = `Basic ${toBase64Utf8(`${basicUser}:${basicPass}`)}`
       }
-    }
 
-    onSubmit({
-      target_url: targetUrl,
-      spec_url: specSource === 'url' ? specUrl : undefined,
-      spec_content: specContent,
-      config: finalAuthHeader ? { auth_header: finalAuthHeader } : {},
-    })
+      let specContent = undefined
+      if (specSource === 'file' && specFile) {
+        try {
+          const text = await specFile.text()
+          specContent = JSON.parse(text)
+        } catch {
+          setFormError('Invalid JSON file')
+          return
+        }
+      }
+
+      onSubmit({
+        target_url: targetUrl,
+        spec_url: specSource === 'url' ? specUrl : undefined,
+        spec_content: specContent,
+        config: finalAuthHeader ? { auth_header: finalAuthHeader } : {},
+      })
+    } catch (err) {
+      setFormError(err?.message || 'Failed to start scan')
+    } finally {
+      setIsPreparing(false)
+    }
   }
 
   return (
@@ -281,6 +297,13 @@ const NewScanModal = ({ onClose, onSubmit, isPending }) => {
             )}
           </div>
 
+          {/* Form-level / server error */}
+          {(formError || serverError) && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {formError || serverError?.response?.data?.detail || serverError?.message || 'Failed to start scan'}
+            </div>
+          )}
+
           {/* Footer buttons */}
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
             <button
@@ -292,10 +315,10 @@ const NewScanModal = ({ onClose, onSubmit, isPending }) => {
             </button>
             <button
               type="submit"
-              disabled={isPending}
+              disabled={busy}
               className="px-5 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-60 flex items-center gap-1.5"
             >
-              {isPending ? (
+              {busy ? (
                 <>
                   <RefreshCw size={13} className="animate-spin" /> Starting…
                 </>
@@ -449,6 +472,7 @@ const ScanList = () => {
           onClose={() => setIsModalOpen(false)}
           onSubmit={(data) => createMutation.mutate(data)}
           isPending={createMutation.isPending}
+          serverError={createMutation.error}
         />
       )}
     </div>

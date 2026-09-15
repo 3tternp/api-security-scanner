@@ -443,7 +443,17 @@ def create_scan(
     scan_in: ScanJobCreate,
     background_tasks: BackgroundTasks,
 ) -> Any:
-    logger.info(f"[DEBUG] Received scan creation request: {scan_in}")
+    # Never log scan_in wholesale: config carries the auth header (bearer
+    # token / base64 basic-auth credentials, trivially reversible) and
+    # spec_content can embed secrets from the uploaded spec/collection.
+    logger.info(
+        "[DEBUG] Received scan creation request: target_url=%s spec_url=%s "
+        "has_spec_content=%s config_keys=%s",
+        scan_in.target_url,
+        scan_in.spec_url,
+        scan_in.spec_content is not None,
+        sorted(scan_in.config.keys()) if scan_in.config else [],
+    )
     try:
         scan = ScanJob(
             target_url=scan_in.target_url,
