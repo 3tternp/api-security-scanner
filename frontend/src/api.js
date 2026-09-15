@@ -31,7 +31,11 @@ const api = axios.create({
   timeout: 30000,
 });
 
-export const createScan = (data) => api.post('/scans/', data);
+// Scan creation now runs the scan inline on the server (see backend
+// create_scan) rather than kicking off a background task, so this request
+// blocks for the full scan duration — give it much more room than the
+// default timeout.
+export const createScan = (data) => api.post('/scans/', data, { timeout: 120000 });
 export const getScans = () => api.get('/scans/');
 export const getScan = (id) => api.get(`/scans/${id}`);
 export const getScanResults = (id) => api.get(`/scans/${id}/results`);
