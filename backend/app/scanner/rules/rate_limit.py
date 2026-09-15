@@ -1,10 +1,18 @@
 import httpx
 import asyncio
+import os
 import time
 from typing import List, Dict
 from app.scanner.rules.base import BaseRule
 
-BURST_TIERS = [10, 25, 50]
+# On a serverless deploy (Vercel), the whole scan now runs inline within one
+# request/function invocation with a hard duration ceiling. This rule's
+# escalating burst is the single largest contributor to scan time (85 live
+# HTTP requests vs. 1-4 for every other rule) — trim it there so a scan has
+# a realistic chance of finishing before the platform times the request out.
+# Local/Docker deployments (a long-running process, no per-request deadline)
+# keep the full burst for stronger signal.
+BURST_TIERS = [3, 7] if os.getenv("VERCEL") == "1" else [10, 25, 50]
 RATE_LIMIT_HEADER_PREFIXES = ("x-ratelimit", "retry-after")
 
 
