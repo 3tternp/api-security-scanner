@@ -437,11 +437,10 @@ def _render_finding(doc, finding, idx: int) -> int:
 # ---------------------------------------------------------------------------
 
 @router.post("/", response_model=ScanJobSchema)
-def create_scan(
+async def create_scan(
     *,
     db: Session = Depends(get_db),
     scan_in: ScanJobCreate,
-    background_tasks: BackgroundTasks,
 ) -> Any:
     # Never log scan_in wholesale: config carries the auth header (bearer
     # token / base64 basic-auth credentials, trivially reversible) and
@@ -466,9 +465,16 @@ def create_scan(
         db.refresh(scan)
         logger.info(f"[DEBUG] Scan created in DB with ID: {scan.id}")
 
+        # Run inline rather than via BackgroundTasks: on a serverless platform
+        # (e.g. Vercel) the function's execution environment can be frozen or
+        # torn down as soon as the response is sent, so a task scheduled to
+        # run "after" the response has no guarantee of ever completing — the
+        # scan would stay stuck at "running" forever. All rules already run
+        # concurrently (see ScannerEngine.run), so this doesn't add up their
+        # individual durations — it's bounded by the slowest single rule.
         scanner = ScannerEngine(db, scan.id)
-        background_tasks.add_task(scanner.run, scan_in.spec_content)
-        logger.info(f"[DEBUG] Background task scheduled for scan {scan.id}")
+        await scanner.run(scan_in.spec_content)
+        logger.info(f"[DEBUG] Scan {scan.id} finished with status={scan.status}")
 
         return scan
     except Exception as e:

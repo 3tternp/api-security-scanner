@@ -320,7 +320,8 @@ const NewScanModal = ({ onClose, onSubmit, isPending, serverError }) => {
             >
               {busy ? (
                 <>
-                  <RefreshCw size={13} className="animate-spin" /> Starting…
+                  <RefreshCw size={13} className="animate-spin" />
+                  {isPending ? 'Scanning… (up to a minute or two)' : 'Preparing…'}
                 </>
               ) : (
                 <>

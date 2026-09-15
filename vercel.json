@@ -4,6 +4,11 @@
   "installCommand": "cd frontend && npm install",
   "devCommand": "cd frontend && npm run dev",
   "framework": "vite",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     { "source": "/api/v1/(.*)", "destination": "/api/index" },
     { "source": "/(.*)", "destination": "/index.html" }
